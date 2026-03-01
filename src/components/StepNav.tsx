@@ -1,8 +1,9 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
-import { Search, Grid3X3, FileText } from "lucide-react";
+import { Search, Grid3X3, FileText, ArrowLeft, Cloud, CloudOff, Loader2, Check } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const steps = [
   { num: 1, label: "Your Campaign", icon: Search },
@@ -11,7 +12,7 @@ const steps = [
 ];
 
 export default function StepNav() {
-  const { currentStep, setCurrentStep, researchSections, grid } =
+  const { currentStep, setCurrentStep, researchSections, grid, frameworkId, saveStatus } =
     useAppStore();
 
   const canNavigateTo = (step: number) => {
@@ -31,7 +32,16 @@ export default function StepNav() {
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {frameworkId && (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Link>
+            )}
             <Image
               src="/logo.svg"
               alt="Campaign Institute"
@@ -42,39 +52,68 @@ export default function StepNav() {
             />
           </div>
 
-          <div className="flex items-center gap-1">
-            {steps.map((step, i) => {
-              const Icon = step.icon;
-              const isActive = currentStep === step.num;
-              const isAccessible = canNavigateTo(step.num);
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              {steps.map((step, i) => {
+                const Icon = step.icon;
+                const isActive = currentStep === step.num;
+                const isAccessible = canNavigateTo(step.num);
 
-              return (
-                <div key={step.num} className="flex items-center">
-                  {i > 0 && (
-                    <div
-                      className={`w-8 h-px mx-1 ${
-                        currentStep > i ? "bg-primary" : "bg-border"
-                      }`}
-                    />
-                  )}
-                  <button
-                    onClick={() => isAccessible && setCurrentStep(step.num)}
-                    disabled={!isAccessible}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
-                      ${
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : isAccessible
-                          ? "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                          : "text-muted-foreground/40 cursor-not-allowed"
-                      }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{step.label}</span>
-                  </button>
-                </div>
-              );
-            })}
+                return (
+                  <div key={step.num} className="flex items-center">
+                    {i > 0 && (
+                      <div
+                        className={`w-8 h-px mx-1 ${
+                          currentStep > i ? "bg-primary" : "bg-border"
+                        }`}
+                      />
+                    )}
+                    <button
+                      onClick={() => isAccessible && setCurrentStep(step.num)}
+                      disabled={!isAccessible}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                        ${
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : isAccessible
+                            ? "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            : "text-muted-foreground/40 cursor-not-allowed"
+                        }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="hidden sm:inline">{step.label}</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Save Status Indicator */}
+            {frameworkId && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                {saveStatus === "saving" && (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span className="hidden sm:inline">Saving...</span>
+                  </>
+                )}
+                {saveStatus === "saved" && (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-green-600" />
+                    <span className="hidden sm:inline text-green-600">Saved</span>
+                  </>
+                )}
+                {saveStatus === "error" && (
+                  <>
+                    <CloudOff className="w-3.5 h-3.5 text-red-500" />
+                    <span className="hidden sm:inline text-red-500">Error</span>
+                  </>
+                )}
+                {saveStatus === "idle" && frameworkId && (
+                  <Cloud className="w-3.5 h-3.5" />
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

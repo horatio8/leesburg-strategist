@@ -72,3 +72,31 @@ export interface SavedSession {
   grid: GridState;
   wells: Record<QuadrantKey, StrategyTile[]>;
 }
+
+export interface MessagingFramework {
+  id: string;
+  user_id: string;
+  title: string;
+  current_step: number;
+
+  // Step 1: Research Input
+  entity_type: EntityType;
+  name: string;
+  location: string;
+  goal: string;
+  website: string;
+  social_media: SocialMedia;
+
+  // Step 1: Research Results
+  research_sections: ResearchSection[];
+  map_data: MapData | null;
+
+  // Step 2: Strategy
+  wells: Record<QuadrantKey, StrategyTile[]>;
+  grid: GridState;
+
+  // Metadata
+  status: "draft" | "in_progress" | "complete";
+  created_at: string;
+  updated_at: string;
+}

@@ -6,9 +6,17 @@ import type {
   QuadrantKey,
   GridState,
   MapData,
+  MessagingFramework,
 } from "./types";
 
 interface AppState {
+  // Framework context
+  frameworkId: string | null;
+  setFrameworkId: (id: string | null) => void;
+  loadFramework: (data: MessagingFramework) => void;
+  saveStatus: "idle" | "saving" | "saved" | "error";
+  setSaveStatus: (status: "idle" | "saving" | "saved" | "error") => void;
+
   // Step tracking
   currentStep: number;
   setCurrentStep: (step: number) => void;
@@ -59,25 +67,55 @@ const initialWells: Record<QuadrantKey, StrategyTile[]> = {
   "the-counter": [],
 };
 
-export const useAppStore = create<AppState>((set, get) => ({
+const initialResearchInput: ResearchInput = {
+  entityType: "candidate",
+  name: "",
+  location: "",
+  goal: "",
+  website: "",
+  socialMedia: {
+    twitter: "",
+    facebook: "",
+    instagram: "",
+    linkedin: "",
+    tiktok: "",
+    youtube: "",
+  },
+};
+
+export const useAppStore = create<AppState>((set) => ({
+  // Framework context
+  frameworkId: null,
+  setFrameworkId: (id) => set({ frameworkId: id }),
+  loadFramework: (data: MessagingFramework) =>
+    set({
+      frameworkId: data.id,
+      currentStep: data.current_step || 1,
+      researchInput: {
+        entityType: data.entity_type || "candidate",
+        name: data.name || "",
+        location: data.location || "",
+        goal: data.goal || "",
+        website: data.website || "",
+        socialMedia: data.social_media || initialResearchInput.socialMedia,
+      },
+      researchSections: data.research_sections || [],
+      mapData: data.map_data || null,
+      wells: data.wells && Object.keys(data.wells).length > 0
+        ? data.wells
+        : { ...initialWells },
+      grid: data.grid && Object.keys(data.grid).length > 0
+        ? data.grid
+        : { ...initialGrid },
+      saveStatus: "idle",
+    }),
+  saveStatus: "idle",
+  setSaveStatus: (status) => set({ saveStatus: status }),
+
   currentStep: 1,
   setCurrentStep: (step) => set({ currentStep: step }),
 
-  researchInput: {
-    entityType: "candidate",
-    name: "",
-    location: "",
-    goal: "",
-    website: "",
-    socialMedia: {
-      twitter: "",
-      facebook: "",
-      instagram: "",
-      linkedin: "",
-      tiktok: "",
-      youtube: "",
-    },
-  },
+  researchInput: { ...initialResearchInput },
   setResearchInput: (input) => set({ researchInput: input }),
 
   researchSections: [],
@@ -172,22 +210,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   resetAll: () =>
     set({
+      frameworkId: null,
       currentStep: 1,
-      researchInput: {
-        entityType: "candidate",
-        name: "",
-        location: "",
-        goal: "",
-        website: "",
-        socialMedia: {
-          twitter: "",
-          facebook: "",
-          instagram: "",
-          linkedin: "",
-          tiktok: "",
-          youtube: "",
-        },
-      },
+      researchInput: { ...initialResearchInput },
       researchSections: [],
       isResearching: false,
       mapData: null,
@@ -195,5 +220,67 @@ export const useAppStore = create<AppState>((set, get) => ({
       grid: { ...initialGrid },
       isGeneratingStrategy: false,
       sessionId: null,
+      saveStatus: "idle",
     }),
 }));
+
+// Auto-save subscription
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+useAppStore.subscribe((state, prevState) => {
+  // Only auto-save when we have a frameworkId
+  if (!state.frameworkId) return;
+
+  // Check if saveable data changed
+  const changed =
+    state.currentStep !== prevState.currentStep ||
+    state.researchInput !== prevState.researchInput ||
+    state.researchSections !== prevState.researchSections ||
+    state.mapData !== prevState.mapData ||
+    state.wells !== prevState.wells ||
+    state.grid !== prevState.grid;
+
+  if (!changed) return;
+
+  // Debounce: save after 2 seconds of inactivity
+  if (saveTimeout) clearTimeout(saveTimeout);
+
+  useAppStore.setState({ saveStatus: "saving" });
+
+  saveTimeout = setTimeout(async () => {
+    const current = useAppStore.getState();
+    if (!current.frameworkId) return;
+
+    try {
+      const res = await fetch(`/api/frameworks/${current.frameworkId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_step: current.currentStep,
+          entity_type: current.researchInput.entityType,
+          name: current.researchInput.name,
+          location: current.researchInput.location,
+          goal: current.researchInput.goal,
+          website: current.researchInput.website,
+          social_media: current.researchInput.socialMedia,
+          research_sections: current.researchSections,
+          map_data: current.mapData,
+          wells: current.wells,
+          grid: current.grid,
+        }),
+      });
+
+      if (res.ok) {
+        useAppStore.setState({ saveStatus: "saved" });
+        // Reset to idle after 2 seconds
+        setTimeout(() => {
+          useAppStore.setState({ saveStatus: "idle" });
+        }, 2000);
+      } else {
+        useAppStore.setState({ saveStatus: "error" });
+      }
+    } catch {
+      useAppStore.setState({ saveStatus: "error" });
+    }
+  }, 2000);
+});

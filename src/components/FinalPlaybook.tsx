@@ -2,12 +2,13 @@
 
 import { useState, useRef } from "react";
 import { useAppStore } from "@/lib/store";
+import { useRouter } from "next/navigation";
 import type { QuadrantKey } from "@/lib/types";
 import { QUADRANT_META } from "@/lib/constants";
 import {
   FileDown,
   Link2,
-  RotateCcw,
+  LayoutDashboard,
   ArrowLeft,
   Check,
   Copy,
@@ -45,8 +46,9 @@ export default function FinalPlaybook() {
     researchSections,
     grid,
     setCurrentStep,
-    resetAll,
+    frameworkId,
   } = useAppStore();
+  const router = useRouter();
 
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -129,6 +131,7 @@ export default function FinalPlaybook() {
           researchInput,
           researchSections,
           grid,
+          frameworkId,
         }),
       });
 
@@ -151,8 +154,8 @@ export default function FinalPlaybook() {
     }
   };
 
-  const handleReset = () => {
-    resetAll();
+  const handleBackToDashboard = () => {
+    router.push("/dashboard");
   };
 
   const totalInGrid = Object.values(grid).reduce(
@@ -303,11 +306,11 @@ export default function FinalPlaybook() {
         </button>
 
         <button
-          onClick={handleReset}
+          onClick={handleBackToDashboard}
           className="flex items-center gap-2 px-5 py-2.5 bg-card border border-border text-muted-foreground rounded-lg font-medium hover:bg-muted/50 hover:text-foreground transition-colors"
         >
-          <RotateCcw className="w-4 h-4" />
-          New Session
+          <LayoutDashboard className="w-4 h-4" />
+          Back to Dashboard
         </button>
       </div>
 

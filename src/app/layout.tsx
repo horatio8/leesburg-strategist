@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Leesburg Strategist",
+  title: "Campaign Institute",
   description:
     "AI-powered political strategy tool for building Leesburg Grids",
   icons: {

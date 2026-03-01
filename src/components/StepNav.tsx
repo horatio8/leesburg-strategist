@@ -35,7 +35,7 @@ export default function StepNav() {
               <Grid3X3 className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="font-semibold text-lg tracking-tight">
-              The Leesburg Strategist
+              Campaign Institute
             </span>
           </div>
 

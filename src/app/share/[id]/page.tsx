@@ -73,7 +73,7 @@ export default function SharedPlaybook() {
           <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
             <Grid3X3 className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-sm">The Leesburg Strategist</span>
+          <span className="font-semibold text-sm">Campaign Institute</span>
           <span className="text-xs text-muted-foreground ml-2">Read-only</span>
         </div>
       </nav>

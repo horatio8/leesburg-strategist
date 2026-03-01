@@ -9,6 +9,12 @@ export interface SocialMedia {
   youtube: string;
 }
 
+export interface Opposition {
+  id: string;
+  name: string;
+  website: string;
+}
+
 export interface ResearchInput {
   entityType: EntityType;
   name: string;
@@ -16,6 +22,14 @@ export interface ResearchInput {
   goal: string;
   website: string;
   socialMedia: SocialMedia;
+  oppositions: Opposition[];
+}
+
+export interface OppositionResearch {
+  oppositionId: string;
+  oppositionName: string;
+  content: string;
+  isEditing: boolean;
 }
 
 export interface ResearchSection {
@@ -87,11 +101,15 @@ export interface MessagingFramework {
   website: string;
   social_media: SocialMedia;
 
-  // Step 1: Research Results
+  // Step 1: Oppositions
+  oppositions: Opposition[];
+
+  // Step 2: Research Results
   research_sections: ResearchSection[];
   map_data: MapData | null;
+  opposition_research: OppositionResearch[];
 
-  // Step 2: Strategy
+  // Step 3: Strategy
   wells: Record<QuadrantKey, StrategyTile[]>;
   grid: GridState;
 

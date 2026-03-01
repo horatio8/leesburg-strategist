@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useAppStore } from "@/lib/store";
 import StepNav from "@/components/StepNav";
 import IntelEngine from "@/components/IntelEngine";
+import PreliminaryResearch from "@/components/PreliminaryResearch";
 import StrategyWorkshop from "@/components/StrategyWorkshop";
 import FinalPlaybook from "@/components/FinalPlaybook";
 import { useRouter } from "next/navigation";
@@ -90,8 +91,9 @@ export default function FrameworkEditorPage({
       <StepNav />
       <main className="flex-1">
         {currentStep === 1 && <IntelEngine />}
-        {currentStep === 2 && <StrategyWorkshop />}
-        {currentStep === 3 && <FinalPlaybook />}
+        {currentStep === 2 && <PreliminaryResearch />}
+        {currentStep === 3 && <StrategyWorkshop />}
+        {currentStep === 4 && <FinalPlaybook />}
       </main>
     </div>
   );

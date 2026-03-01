@@ -152,7 +152,7 @@ export default function StrategyWorkshop() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Step 2: Strategy Workshop</h1>
+            <h1 className="text-2xl font-bold">Step 3: Strategy Workshop</h1>
             <p className="text-muted-foreground text-sm">
               Drag strategies from the wells into the grid. Up to 5 per
               quadrant.
@@ -184,18 +184,18 @@ export default function StrategyWorkshop() {
           </button>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setCurrentStep(1)}
+              onClick={() => setCurrentStep(2)}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Intel
+              Back to Research
             </button>
             <div className="text-sm text-muted-foreground">
               <span className="font-mono text-foreground">{totalInGrid}</span>
               /20 selected
             </div>
             <button
-              onClick={() => setCurrentStep(3)}
+              onClick={() => setCurrentStep(4)}
               disabled={totalInGrid === 0}
               className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

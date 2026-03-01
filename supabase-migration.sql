@@ -55,6 +55,11 @@ create trigger set_updated_at
   before update on messaging_frameworks
   for each row execute function update_updated_at();
 
+-- Step 1: Oppositions
+-- Run this migration to add opposition tracking columns:
+-- ALTER TABLE messaging_frameworks ADD COLUMN IF NOT EXISTS oppositions jsonb NOT NULL DEFAULT '[]';
+-- ALTER TABLE messaging_frameworks ADD COLUMN IF NOT EXISTS opposition_research jsonb NOT NULL DEFAULT '[]';
+
 -- Shared sessions table (replaces in-memory Map)
 create table shared_sessions (
   id text primary key,

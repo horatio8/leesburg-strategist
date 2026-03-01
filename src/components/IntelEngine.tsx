@@ -1,45 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import { useAppStore } from "@/lib/store";
 import type { EntityType } from "@/lib/types";
 
-// Dynamically import the map component (Leaflet requires browser APIs)
-const DistrictMap = dynamic(() => import("./DistrictMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="mt-4 rounded-lg border border-border bg-muted/30 flex items-center justify-center" style={{ height: "320px" }}>
-      <p className="text-sm text-muted-foreground">Loading map...</p>
-    </div>
-  ),
-});
 import {
   Search,
-  MapPin,
-  BarChart3,
-  UserSearch,
-  TrendingUp,
-  Newspaper,
-  Pencil,
-  Check,
-  Trash2,
-  ArrowRight,
   Loader2,
   User,
   Building2,
   Landmark,
   Globe,
   AtSign,
+  Plus,
+  X,
+  UserMinus,
 } from "lucide-react";
-
-const iconMap: Record<string, React.ElementType> = {
-  MapPin,
-  BarChart3,
-  UserSearch,
-  TrendingUp,
-  Newspaper,
-};
 
 const entityTypes: { value: EntityType; label: string; icon: React.ElementType }[] = [
   { value: "candidate", label: "Candidate", icon: User },
@@ -60,23 +36,21 @@ export default function IntelEngine() {
   const {
     researchInput,
     setResearchInput,
-    researchSections,
     setResearchSections,
-    updateResearchSection,
     isResearching,
     setIsResearching,
     setCurrentStep,
-    mapData,
     setMapData,
+    addOpposition,
+    removeOpposition,
+    updateOpposition,
   } = useAppStore();
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleResearch = async () => {
     if (!researchInput.name || !researchInput.location || !researchInput.goal) {
-      setError("Please fill in all fields");
+      setError("Please fill in all required fields");
       return;
     }
 
@@ -100,6 +74,9 @@ export default function IntelEngine() {
       if (data.mapData) {
         setMapData(data.mapData);
       }
+
+      // Auto-advance to Preliminary Research step
+      setCurrentStep(2);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Research failed. Please try again.";
       setError(message);
@@ -108,27 +85,13 @@ export default function IntelEngine() {
     }
   };
 
-  const startEdit = (id: string, content: string) => {
-    setEditingId(id);
-    setEditText(content);
-  };
-
-  const saveEdit = (id: string) => {
-    updateResearchSection(id, editText);
-    setEditingId(null);
-  };
-
-  const deleteSection = (id: string) => {
-    setResearchSections(researchSections.filter((s) => s.id !== id));
-  };
-
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Step 1: Tell us about your campaign</h1>
+        <h1 className="text-3xl font-bold mb-2">Step 1: Your Campaign</h1>
         <p className="text-muted-foreground">
-          Define your target and let AI research the political landscape.
+          Define your campaign and let AI research the political landscape.
         </p>
       </div>
 
@@ -171,7 +134,7 @@ export default function IntelEngine() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-muted-foreground">
-                Name
+                Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -185,7 +148,7 @@ export default function IntelEngine() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-muted-foreground">
-                District / Location
+                District / Location <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -205,7 +168,7 @@ export default function IntelEngine() {
           {/* Goal */}
           <div>
             <label className="block text-sm font-medium mb-2 text-muted-foreground">
-              Strategic Goal
+              Strategic Goal <span className="text-red-500">*</span>
             </label>
             <textarea
               placeholder="e.g., Win the Democratic primary by mobilizing suburban voters concerned about education funding..."
@@ -274,6 +237,62 @@ export default function IntelEngine() {
             </div>
           </div>
 
+          {/* Opposition Section */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <UserMinus className="w-4 h-4" />
+                Opposition (Optional)
+              </span>
+            </label>
+            <p className="text-xs text-muted-foreground/60 mb-3">
+              Add opponents or competing entities (e.g., the incumbent, another PAC). The AI will research them too.
+            </p>
+
+            {researchInput.oppositions.length > 0 && (
+              <div className="space-y-3 mb-3">
+                {researchInput.oppositions.map((opp) => (
+                  <div
+                    key={opp.id}
+                    className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background"
+                  >
+                    <div className="flex-1 grid sm:grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Opposition name"
+                        value={opp.name}
+                        onChange={(e) => updateOpposition(opp.id, "name", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Website (optional)"
+                        value={opp.website}
+                        onChange={(e) => updateOpposition(opp.id, "website", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                      />
+                    </div>
+                    <button
+                      onClick={() => removeOpposition(opp.id)}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-colors mt-1"
+                      title="Remove opposition"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={addOpposition}
+              className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add Opposition
+            </button>
+          </div>
+
           {/* Error Message */}
           {error && (
             <div className="text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-2 rounded-lg">
@@ -329,92 +348,6 @@ export default function IntelEngine() {
             </div>
           ))}
         </div>
-      )}
-
-      {/* Research Results */}
-      {!isResearching && researchSections.length > 0 && (
-        <>
-          <div className="space-y-4 mb-8">
-            {researchSections.map((section) => {
-              const Icon = iconMap[section.icon] || MapPin;
-              const isEditing = editingId === section.id;
-
-              return (
-                <div
-                  key={section.id}
-                  className="bg-card rounded-xl border border-border p-6 group"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Icon className="w-4 h-4 text-primary" />
-                      </div>
-                      <h3 className="font-semibold">{section.title}</h3>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isEditing ? (
-                        <button
-                          onClick={() => saveEdit(section.id)}
-                          className="p-1.5 rounded-lg hover:bg-muted text-green-600"
-                          title="Save"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() =>
-                            startEdit(section.id, section.content)
-                          }
-                          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
-                          title="Edit"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => deleteSection(section.id)}
-                        className="p-1.5 rounded-lg hover:bg-muted text-red-600"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {isEditing ? (
-                    <textarea
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y min-h-[120px]"
-                      rows={6}
-                      autoFocus
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {section.content}
-                    </p>
-                  )}
-
-                  {/* District Map - shown in Geographic Profile section */}
-                  {section.id === "geographic" && mapData && (
-                    <DistrictMap mapData={mapData} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Proceed Button */}
-          <div className="flex justify-end">
-            <button
-              onClick={() => setCurrentStep(2)}
-              className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-            >
-              Build Strategy Grid
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </>
       )}
     </div>
   );

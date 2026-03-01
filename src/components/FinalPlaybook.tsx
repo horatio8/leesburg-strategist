@@ -168,7 +168,7 @@ export default function FinalPlaybook() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Step 3: Final Playbook</h1>
+          <h1 className="text-3xl font-bold mb-1">Step 4: Final Playbook</h1>
           <p className="text-muted-foreground">
             {researchInput.name} &bull; {researchInput.location} &bull;{" "}
             {totalInGrid} strategies selected
@@ -176,7 +176,7 @@ export default function FinalPlaybook() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setCurrentStep(2)}
+            onClick={() => setCurrentStep(3)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />

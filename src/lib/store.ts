@@ -7,6 +7,8 @@ import type {
   GridState,
   MapData,
   MessagingFramework,
+  Opposition,
+  OppositionResearch,
 } from "./types";
 
 interface AppState {
@@ -21,9 +23,14 @@ interface AppState {
   currentStep: number;
   setCurrentStep: (step: number) => void;
 
-  // Page 1: Research
+  // Page 1: Campaign Input
   researchInput: ResearchInput;
   setResearchInput: (input: ResearchInput) => void;
+  addOpposition: () => void;
+  removeOpposition: (id: string) => void;
+  updateOpposition: (id: string, field: keyof Opposition, value: string) => void;
+
+  // Page 2: Research Results
   researchSections: ResearchSection[];
   setResearchSections: (sections: ResearchSection[]) => void;
   updateResearchSection: (id: string, content: string) => void;
@@ -31,8 +38,13 @@ interface AppState {
   setIsResearching: (v: boolean) => void;
   mapData: MapData | null;
   setMapData: (data: MapData | null) => void;
+  oppositionResearch: OppositionResearch[];
+  setOppositionResearch: (research: OppositionResearch[]) => void;
+  updateOppositionResearch: (oppositionId: string, content: string) => void;
+  isResearchingOpposition: boolean;
+  setIsResearchingOpposition: (v: boolean) => void;
 
-  // Page 2: Strategy Wells + Grid
+  // Page 3: Strategy Wells + Grid
   wells: Record<QuadrantKey, StrategyTile[]>;
   setWells: (wells: Record<QuadrantKey, StrategyTile[]>) => void;
   updateWellTile: (quadrant: QuadrantKey, tileId: string, text: string) => void;
@@ -81,6 +93,7 @@ const initialResearchInput: ResearchInput = {
     tiktok: "",
     youtube: "",
   },
+  oppositions: [],
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -98,9 +111,11 @@ export const useAppStore = create<AppState>((set) => ({
         goal: data.goal || "",
         website: data.website || "",
         socialMedia: data.social_media || initialResearchInput.socialMedia,
+        oppositions: data.oppositions || [],
       },
       researchSections: data.research_sections || [],
       mapData: data.map_data || null,
+      oppositionResearch: data.opposition_research || [],
       wells: data.wells && Object.keys(data.wells).length > 0
         ? data.wells
         : { ...initialWells },
@@ -117,6 +132,32 @@ export const useAppStore = create<AppState>((set) => ({
 
   researchInput: { ...initialResearchInput },
   setResearchInput: (input) => set({ researchInput: input }),
+  addOpposition: () =>
+    set((state) => ({
+      researchInput: {
+        ...state.researchInput,
+        oppositions: [
+          ...state.researchInput.oppositions,
+          { id: `opp-${Date.now()}`, name: "", website: "" },
+        ],
+      },
+    })),
+  removeOpposition: (id) =>
+    set((state) => ({
+      researchInput: {
+        ...state.researchInput,
+        oppositions: state.researchInput.oppositions.filter((o) => o.id !== id),
+      },
+    })),
+  updateOpposition: (id, field, value) =>
+    set((state) => ({
+      researchInput: {
+        ...state.researchInput,
+        oppositions: state.researchInput.oppositions.map((o) =>
+          o.id === id ? { ...o, [field]: value } : o
+        ),
+      },
+    })),
 
   researchSections: [],
   setResearchSections: (sections) => set({ researchSections: sections }),
@@ -130,6 +171,16 @@ export const useAppStore = create<AppState>((set) => ({
   setIsResearching: (v) => set({ isResearching: v }),
   mapData: null,
   setMapData: (data) => set({ mapData: data }),
+  oppositionResearch: [],
+  setOppositionResearch: (research) => set({ oppositionResearch: research }),
+  updateOppositionResearch: (oppositionId, content) =>
+    set((state) => ({
+      oppositionResearch: state.oppositionResearch.map((r) =>
+        r.oppositionId === oppositionId ? { ...r, content } : r
+      ),
+    })),
+  isResearchingOpposition: false,
+  setIsResearchingOpposition: (v) => set({ isResearchingOpposition: v }),
 
   wells: { ...initialWells },
   setWells: (wells) => set({ wells }),
@@ -216,6 +267,8 @@ export const useAppStore = create<AppState>((set) => ({
       researchSections: [],
       isResearching: false,
       mapData: null,
+      oppositionResearch: [],
+      isResearchingOpposition: false,
       wells: { ...initialWells },
       grid: { ...initialGrid },
       isGeneratingStrategy: false,
@@ -237,6 +290,7 @@ useAppStore.subscribe((state, prevState) => {
     state.researchInput !== prevState.researchInput ||
     state.researchSections !== prevState.researchSections ||
     state.mapData !== prevState.mapData ||
+    state.oppositionResearch !== prevState.oppositionResearch ||
     state.wells !== prevState.wells ||
     state.grid !== prevState.grid;
 
@@ -263,8 +317,10 @@ useAppStore.subscribe((state, prevState) => {
           goal: current.researchInput.goal,
           website: current.researchInput.website,
           social_media: current.researchInput.socialMedia,
+          oppositions: current.researchInput.oppositions,
           research_sections: current.researchSections,
           map_data: current.mapData,
+          opposition_research: current.oppositionResearch,
           wells: current.wells,
           grid: current.grid,
         }),

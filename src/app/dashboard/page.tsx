@@ -88,7 +88,7 @@ export default function DashboardPage() {
   };
 
   const stepLabel = (step: number) => {
-    const labels = ["", "Your Campaign", "Strategy Workshop", "Final Playbook"];
+    const labels = ["", "Your Campaign", "Preliminary Research", "Strategy Workshop", "Final Playbook"];
     return labels[step] || "Your Campaign";
   };
 
@@ -118,7 +118,7 @@ export default function DashboardPage() {
           className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
           <Plus className="w-4 h-4" />
-          {creating ? "Creating..." : "New Framework"}
+          {creating ? "Creating..." : "New Messaging Framework"}
         </button>
       </div>
 

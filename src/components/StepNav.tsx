@@ -1,14 +1,15 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
-import { Search, Grid3X3, FileText, ArrowLeft, Cloud, CloudOff, Loader2, Check } from "lucide-react";
+import { Search, FileSearch, Grid3X3, FileText, ArrowLeft, Cloud, CloudOff, Loader2, Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 const steps = [
   { num: 1, label: "Your Campaign", icon: Search },
-  { num: 2, label: "Strategy Workshop", icon: Grid3X3 },
-  { num: 3, label: "Final Playbook", icon: FileText },
+  { num: 2, label: "Preliminary Research", icon: FileSearch },
+  { num: 3, label: "Strategy Workshop", icon: Grid3X3 },
+  { num: 4, label: "Final Playbook", icon: FileText },
 ];
 
 export default function StepNav() {
@@ -18,7 +19,8 @@ export default function StepNav() {
   const canNavigateTo = (step: number) => {
     if (step === 1) return true;
     if (step === 2) return researchSections.length > 0;
-    if (step === 3) {
+    if (step === 3) return researchSections.length > 0;
+    if (step === 4) {
       const totalInGrid = Object.values(grid).reduce(
         (sum, arr) => sum + arr.length,
         0
@@ -33,6 +35,16 @@ export default function StepNav() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
+            <Link href="/dashboard">
+              <Image
+                src="/logo.svg"
+                alt="Campaign Institute"
+                width={200}
+                height={60}
+                className="h-10 w-auto"
+                priority
+              />
+            </Link>
             {frameworkId && (
               <Link
                 href="/dashboard"
@@ -42,14 +54,6 @@ export default function StepNav() {
                 <span className="hidden sm:inline">Dashboard</span>
               </Link>
             )}
-            <Image
-              src="/logo.svg"
-              alt="Campaign Institute"
-              width={200}
-              height={60}
-              className="h-10 w-auto"
-              priority
-            />
           </div>
 
           <div className="flex items-center gap-3">

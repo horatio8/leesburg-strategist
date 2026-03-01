@@ -168,7 +168,7 @@ export default function FinalPlaybook() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-1">The Final Playbook</h1>
+          <h1 className="text-3xl font-bold mb-1">Step 3: Final Playbook</h1>
           <p className="text-muted-foreground">
             {researchInput.name} &bull; {researchInput.location} &bull;{" "}
             {totalInGrid} strategies selected

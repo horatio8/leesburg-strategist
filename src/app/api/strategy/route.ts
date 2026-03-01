@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 CRITICAL RULES:
 - Every point in "Our Story" must have a logical counter-punch in "The Counter"
 - Every attack we level at them must be met with their likely defense
-- Each angle should be a concise 1-2 sentence messaging point
+- Each angle MUST be formatted as "Summary: Description" where Summary is a single punchy keyword or short phrase and Description is 1-2 sentences. Example: "Proven: Johnnie Garmon brings proven business experience and deep community roots to tackle District 115's infrastructure challenges with practical solutions."
 - Be specific to the research provided, not generic
 - Make them punchy, memorable, and strategically sound`;
 

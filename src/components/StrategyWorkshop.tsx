@@ -16,7 +16,7 @@ import type { QuadrantKey, StrategyTile } from "@/lib/types";
 import { QUADRANT_META, MAX_TILES_PER_QUADRANT } from "@/lib/constants";
 import StrategyWell from "./StrategyWell";
 import DroppableQuadrant from "./DroppableQuadrant";
-import { Loader2, ArrowRight, ArrowLeft, GripVertical } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, GripVertical, RefreshCw } from "lucide-react";
 
 export default function StrategyWorkshop() {
   const {
@@ -152,12 +152,36 @@ export default function StrategyWorkshop() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">The Strategy Workshop</h1>
+            <h1 className="text-2xl font-bold">Step 2: Strategy Workshop</h1>
             <p className="text-muted-foreground text-sm">
               Drag strategies from the wells into the grid. Up to 5 per
               quadrant.
             </p>
           </div>
+          <button
+            onClick={() => {
+              setWells({
+                "our-story": [],
+                "the-attack": [],
+                "their-defense": [],
+                "the-counter": [],
+              });
+              // Clear the grid too — use store setter
+              useAppStore.setState({
+                grid: {
+                  "our-story": [],
+                  "the-attack": [],
+                  "their-defense": [],
+                  "the-counter": [],
+                },
+              });
+              generateStrategy();
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Generate New Strategies
+          </button>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCurrentStep(1)}
@@ -242,7 +266,16 @@ export default function StrategyWorkshop() {
         {activeTile ? (
           <div className="drag-overlay flex items-start gap-2 p-3 rounded-lg border bg-card border-primary text-sm max-w-[300px]">
             <GripVertical className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
-            <p className="leading-snug">{activeTile.text}</p>
+            <p className="leading-snug">
+              {activeTile.text.includes(": ") ? (
+                <>
+                  <strong>{activeTile.text.substring(0, activeTile.text.indexOf(": "))}:</strong>
+                  {activeTile.text.substring(activeTile.text.indexOf(": ") + 1)}
+                </>
+              ) : (
+                activeTile.text
+              )}
+            </p>
           </div>
         ) : null}
       </DragOverlay>

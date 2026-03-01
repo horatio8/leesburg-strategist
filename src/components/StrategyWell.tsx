@@ -51,16 +51,7 @@ export default function StrategyWell({
 
       {/* Tiles */}
       <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
-        {tiles.map((tile) => (
-          <DraggableTile
-            key={tile.id}
-            tile={tile}
-            quadrantKey={quadrantKey}
-            onEdit={(id, text) => updateWellTile(quadrantKey, id, text)}
-          />
-        ))}
-
-        {/* Add Custom Tile */}
+        {/* Add Custom Tile — at top for visibility */}
         {showCustom ? (
           <div className="p-2 rounded-lg border border-dashed border-border">
             <textarea
@@ -98,6 +89,15 @@ export default function StrategyWell({
             Add Custom Strategy
           </button>
         )}
+
+        {tiles.map((tile) => (
+          <DraggableTile
+            key={tile.id}
+            tile={tile}
+            quadrantKey={quadrantKey}
+            onEdit={(id, text) => updateWellTile(quadrantKey, id, text)}
+          />
+        ))}
       </div>
     </div>
   );

@@ -98,7 +98,16 @@ export default function DraggableTile({
             </div>
           </div>
         ) : (
-          <p className="leading-snug">{tile.text}</p>
+          <p className="leading-snug">
+            {tile.text.includes(": ") ? (
+              <>
+                <strong>{tile.text.substring(0, tile.text.indexOf(": "))}:</strong>
+                {tile.text.substring(tile.text.indexOf(": ") + 1)}
+              </>
+            ) : (
+              tile.text
+            )}
+          </p>
         )}
       </div>
 

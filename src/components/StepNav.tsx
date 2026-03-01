@@ -5,7 +5,7 @@ import { Search, Grid3X3, FileText } from "lucide-react";
 import Image from "next/image";
 
 const steps = [
-  { num: 1, label: "Intel Engine", icon: Search },
+  { num: 1, label: "Your Campaign", icon: Search },
   { num: 2, label: "Strategy Workshop", icon: Grid3X3 },
   { num: 3, label: "Final Playbook", icon: FileText },
 ];

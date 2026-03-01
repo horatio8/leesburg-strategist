@@ -99,7 +99,7 @@ export default function IntelEngine() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">The Intel Engine</h1>
+        <h1 className="text-3xl font-bold mb-2">Step 1: Tell us about your campaign</h1>
         <p className="text-muted-foreground">
           Define your target and let AI research the political landscape.
         </p>
@@ -111,7 +111,7 @@ export default function IntelEngine() {
           {/* Entity Type Toggle */}
           <div>
             <label className="block text-sm font-medium mb-2 text-muted-foreground">
-              Entity Type
+              Select your entity type
             </label>
             <div className="flex gap-2">
               {entityTypes.map((type) => {

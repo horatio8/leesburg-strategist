@@ -5,7 +5,7 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const { entityType, name, location, goal } = await req.json();
+    const { entityType, name, location, goal, website, socialMedia } = await req.json();
 
     if (!name || !location || !goal) {
       return NextResponse.json(
@@ -20,12 +20,23 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = `You are a senior political research analyst. You produce concise, actionable intelligence briefs for political strategists. Be specific with real data points when available, and clearly flag any estimates or general assessments. Use a professional, direct tone.`;
 
+    // Build optional context sections
+    const websiteSection = website ? `\nCampaign Website: ${website} (use this URL to inform your research about their platform, messaging, and public positioning)` : "";
+
+    const socialHandles = socialMedia
+      ? Object.entries(socialMedia as Record<string, string>)
+          .filter(([, v]) => v && v.trim())
+          .map(([platform, handle]) => `  ${platform}: ${handle}`)
+          .join("\n")
+      : "";
+    const socialSection = socialHandles ? `\nSocial Media Presence:\n${socialHandles}\n(Use these social media profiles to inform your research about their public communication style, engagement, and digital strategy)` : "";
+
     const userPrompt = `Research the following political entity and produce a comprehensive intelligence brief:
 
 Entity Type: ${entityType}
 Name: ${name}
 Location/District: ${location}
-Strategic Goal: ${goal}
+Strategic Goal: ${goal}${websiteSection}${socialSection}
 
 Produce your findings in EXACTLY this JSON format (no markdown, no code fences, just raw JSON):
 

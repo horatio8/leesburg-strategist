@@ -18,6 +18,8 @@ import {
   User,
   Building2,
   Landmark,
+  Globe,
+  AtSign,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -32,6 +34,15 @@ const entityTypes: { value: EntityType; label: string; icon: React.ElementType }
   { value: "candidate", label: "Candidate", icon: User },
   { value: "pac", label: "PAC", icon: Landmark },
   { value: "business", label: "Business", icon: Building2 },
+];
+
+const socialPlatforms: { key: "twitter" | "facebook" | "instagram" | "linkedin" | "tiktok" | "youtube"; label: string; placeholder: string }[] = [
+  { key: "twitter", label: "X / Twitter", placeholder: "@handle" },
+  { key: "facebook", label: "Facebook", placeholder: "facebook.com/page" },
+  { key: "instagram", label: "Instagram", placeholder: "@handle" },
+  { key: "linkedin", label: "LinkedIn", placeholder: "linkedin.com/in/profile" },
+  { key: "tiktok", label: "TikTok", placeholder: "@handle" },
+  { key: "youtube", label: "YouTube", placeholder: "youtube.com/@channel" },
 ];
 
 export default function IntelEngine() {
@@ -189,6 +200,62 @@ export default function IntelEngine() {
               rows={3}
               className="w-full px-4 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none"
             />
+          </div>
+
+          {/* Campaign Website */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-muted-foreground">
+              Campaign Website
+            </label>
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+              <input
+                type="url"
+                placeholder="https://www.example.com"
+                value={researchInput.website}
+                onChange={(e) =>
+                  setResearchInput({ ...researchInput, website: e.target.value })
+                }
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              The AI will use this URL to enhance its research
+            </p>
+          </div>
+
+          {/* Social Media Handles */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <AtSign className="w-4 h-4" />
+                Social Media Handles
+              </span>
+            </label>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {socialPlatforms.map((platform) => (
+                <div key={platform.key}>
+                  <label className="block text-xs text-muted-foreground/60 mb-1">
+                    {platform.label}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={platform.placeholder}
+                    value={researchInput.socialMedia[platform.key]}
+                    onChange={(e) =>
+                      setResearchInput({
+                        ...researchInput,
+                        socialMedia: {
+                          ...researchInput.socialMedia,
+                          [platform.key]: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Error Message */}

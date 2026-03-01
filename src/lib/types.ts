@@ -1,10 +1,21 @@
 export type EntityType = "candidate" | "pac" | "business";
 
+export interface SocialMedia {
+  twitter: string;
+  facebook: string;
+  instagram: string;
+  linkedin: string;
+  tiktok: string;
+  youtube: string;
+}
+
 export interface ResearchInput {
   entityType: EntityType;
   name: string;
   location: string;
   goal: string;
+  website: string;
+  socialMedia: SocialMedia;
 }
 
 export interface ResearchSection {

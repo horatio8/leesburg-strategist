@@ -84,20 +84,12 @@ IMPORTANT for mapData: You MUST provide accurate latitude and longitude coordina
       } else {
         throw new Error("No JSON found in response");
       }
-    } catch {
-      // If parsing fails, create sections from the raw text
-      parsed = {
-        geographic:
-          "Research data is being compiled. Please edit this section with your own findings.",
-        electoral:
-          "Research data is being compiled. Please edit this section with your own findings.",
-        incumbent:
-          "Research data is being compiled. Please edit this section with your own findings.",
-        issues:
-          "Research data is being compiled. Please edit this section with your own findings.",
-        context:
-          "Research data is being compiled. Please edit this section with your own findings.",
-      };
+    } catch (parseErr) {
+      console.error("JSON parse error:", parseErr);
+      console.error("Raw response (first 500 chars):", textContent.text.substring(0, 500));
+      throw new Error(
+        `Failed to parse AI response as JSON. Raw start: ${textContent.text.substring(0, 200)}`
+      );
     }
 
     const sections = [

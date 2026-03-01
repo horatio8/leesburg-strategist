@@ -1,8 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useAppStore } from "@/lib/store";
 import type { EntityType } from "@/lib/types";
+
+// Dynamically import the map component (Leaflet requires browser APIs)
+const DistrictMap = dynamic(() => import("./DistrictMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="mt-4 rounded-lg border border-border bg-muted/30 flex items-center justify-center" style={{ height: "320px" }}>
+      <p className="text-sm text-muted-foreground">Loading map...</p>
+    </div>
+  ),
+});
 import {
   Search,
   MapPin,
@@ -55,6 +66,8 @@ export default function IntelEngine() {
     isResearching,
     setIsResearching,
     setCurrentStep,
+    mapData,
+    setMapData,
   } = useAppStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -84,6 +97,9 @@ export default function IntelEngine() {
 
       const data = await res.json();
       setResearchSections(data.sections);
+      if (data.mapData) {
+        setMapData(data.mapData);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Research failed. Please try again.";
       setError(message);
@@ -377,6 +393,11 @@ export default function IntelEngine() {
                     <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                       {section.content}
                     </p>
+                  )}
+
+                  {/* District Map - shown in Geographic Profile section */}
+                  {section.id === "geographic" && mapData && (
+                    <DistrictMap mapData={mapData} />
                   )}
                 </div>
               );

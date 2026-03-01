@@ -56,6 +56,14 @@ export interface GridState {
   "the-counter": StrategyTile[];
 }
 
+export interface MapData {
+  lat: number;
+  lng: number;
+  zoom: number;
+  boundaryQuery: string;
+  label: string;
+}
+
 export interface SavedSession {
   id: string;
   createdAt: string;

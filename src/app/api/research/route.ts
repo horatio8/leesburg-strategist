@@ -45,8 +45,17 @@ Produce your findings in EXACTLY this JSON format (no markdown, no code fences, 
   "electoral": "A 2-3 paragraph analysis of recent election margins, voter turnout trends, registration numbers by party, and estimated 'win numbers' (votes needed to win). Include specific percentages and numbers where possible.",
   "incumbent": "A 2-3 paragraph audit of the current incumbent or primary opponent including their record, voting history, known vulnerabilities, public perception, approval ratings, and any notable positions.",
   "issues": "A 2-3 paragraph summary of the top 3-5 trending local concerns. What are voters talking about? What issues drive turnout in this area? Include any relevant polling data.",
-  "context": "A 2-3 paragraph overview of the current strategic landscape including recent news, scandals, endorsements, fundraising dynamics, or external events that could affect the race."
-}`;
+  "context": "A 2-3 paragraph overview of the current strategic landscape including recent news, scandals, endorsements, fundraising dynamics, or external events that could affect the race.",
+  "mapData": {
+    "lat": 0.0,
+    "lng": 0.0,
+    "zoom": 8,
+    "boundaryQuery": "A Nominatim/OpenStreetMap search query to find this specific district boundary. Examples: '10th congressional district, Virginia, United States' or 'Virginia State Senate district 31' or 'State of Florida, United States'. Use the most specific boundary query that matches the district level.",
+    "label": "A short label for the map, e.g. 'VA-10' or 'Florida Senate District 31'"
+  }
+}
+
+IMPORTANT for mapData: You MUST provide accurate latitude and longitude coordinates for the CENTER of the district/area. Use real geographic coordinates (lat between -90 and 90, lng between -180 and 180). Set zoom level appropriately: 6 for state-level, 8 for congressional, 9-10 for state legislative, 11 for city/local. The boundaryQuery should be a search string that OpenStreetMap's Nominatim geocoder can resolve to find the district boundary polygon.`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -129,7 +138,18 @@ Produce your findings in EXACTLY this JSON format (no markdown, no code fences, 
       },
     ];
 
-    return NextResponse.json({ sections });
+    // Extract map data if available
+    const mapData = parsed.mapData && parsed.mapData.lat && parsed.mapData.lng
+      ? {
+          lat: Number(parsed.mapData.lat),
+          lng: Number(parsed.mapData.lng),
+          zoom: Number(parsed.mapData.zoom) || 8,
+          boundaryQuery: parsed.mapData.boundaryQuery || "",
+          label: parsed.mapData.label || "",
+        }
+      : null;
+
+    return NextResponse.json({ sections, mapData });
   } catch (error: unknown) {
     console.error("Research API error:", error);
     const message =

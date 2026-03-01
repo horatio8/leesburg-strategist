@@ -5,6 +5,7 @@ import type {
   StrategyTile,
   QuadrantKey,
   GridState,
+  MapData,
 } from "./types";
 
 interface AppState {
@@ -20,6 +21,8 @@ interface AppState {
   updateResearchSection: (id: string, content: string) => void;
   isResearching: boolean;
   setIsResearching: (v: boolean) => void;
+  mapData: MapData | null;
+  setMapData: (data: MapData | null) => void;
 
   // Page 2: Strategy Wells + Grid
   wells: Record<QuadrantKey, StrategyTile[]>;
@@ -87,6 +90,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     })),
   isResearching: false,
   setIsResearching: (v) => set({ isResearching: v }),
+  mapData: null,
+  setMapData: (data) => set({ mapData: data }),
 
   wells: { ...initialWells },
   setWells: (wells) => set({ wells }),
@@ -185,6 +190,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       },
       researchSections: [],
       isResearching: false,
+      mapData: null,
       wells: { ...initialWells },
       grid: { ...initialGrid },
       isGeneratingStrategy: false,

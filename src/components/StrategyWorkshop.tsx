@@ -199,8 +199,8 @@ export default function StrategyWorkshop() {
           <div className="space-y-4">
             <StrategyWell quadrantKey="our-story" tiles={wells["our-story"]} />
             <StrategyWell
-              quadrantKey="their-defense"
-              tiles={wells["their-defense"]}
+              quadrantKey="the-counter"
+              tiles={wells["the-counter"]}
             />
           </div>
 
@@ -209,9 +209,9 @@ export default function StrategyWorkshop() {
             {(
               [
                 "our-story",
-                "their-defense",
                 "the-attack",
                 "the-counter",
+                "their-defense",
               ] as QuadrantKey[]
             ).map((key) => (
               <DroppableQuadrant
@@ -230,8 +230,8 @@ export default function StrategyWorkshop() {
               tiles={wells["the-attack"]}
             />
             <StrategyWell
-              quadrantKey="the-counter"
-              tiles={wells["the-counter"]}
+              quadrantKey="their-defense"
+              tiles={wells["their-defense"]}
             />
           </div>
         </div>

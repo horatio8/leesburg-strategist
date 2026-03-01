@@ -97,9 +97,9 @@ export default function SharedPlaybook() {
           {(
             [
               "our-story",
-              "their-defense",
               "the-attack",
               "the-counter",
+              "their-defense",
             ] as QuadrantKey[]
           ).map((key) => {
             const meta = QUADRANT_META[key];

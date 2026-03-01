@@ -97,8 +97,8 @@ export default function SharedPlaybook() {
           {(
             [
               "our-story",
-              "the-attack",
               "their-defense",
+              "the-attack",
               "the-counter",
             ] as QuadrantKey[]
           ).map((key) => {

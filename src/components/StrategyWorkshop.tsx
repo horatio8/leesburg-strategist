@@ -199,8 +199,8 @@ export default function StrategyWorkshop() {
           <div className="space-y-4">
             <StrategyWell quadrantKey="our-story" tiles={wells["our-story"]} />
             <StrategyWell
-              quadrantKey="the-attack"
-              tiles={wells["the-attack"]}
+              quadrantKey="their-defense"
+              tiles={wells["their-defense"]}
             />
           </div>
 
@@ -209,8 +209,8 @@ export default function StrategyWorkshop() {
             {(
               [
                 "our-story",
-                "the-attack",
                 "their-defense",
+                "the-attack",
                 "the-counter",
               ] as QuadrantKey[]
             ).map((key) => (
@@ -226,8 +226,8 @@ export default function StrategyWorkshop() {
           {/* Right Wells */}
           <div className="space-y-4">
             <StrategyWell
-              quadrantKey="their-defense"
-              tiles={wells["their-defense"]}
+              quadrantKey="the-attack"
+              tiles={wells["the-attack"]}
             />
             <StrategyWell
               quadrantKey="the-counter"

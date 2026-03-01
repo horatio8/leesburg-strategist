@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
+  <!-- Golden flower/rosette icon -->
+  <g transform="translate(55, 60)">
+    <!-- Four overlapping petals -->
+    <ellipse cx="-18" cy="-18" rx="28" ry="28" fill="#F5C342" opacity="0.7"/>
+    <ellipse cx="18" cy="-18" rx="28" ry="28" fill="#F5C342" opacity="0.7"/>
+    <ellipse cx="-18" cy="18" rx="28" ry="28" fill="#F5C342" opacity="0.7"/>
+    <ellipse cx="18" cy="18" rx="28" ry="28" fill="#F5C342" opacity="0.7"/>
+    <!-- White center -->
+    <rect x="-12" y="-12" width="24" height="24" rx="6" fill="white"/>
+  </g>
+  <!-- Text -->
+  <text x="120" y="52" font-family="'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="#272560" letter-spacing="2">CAMPAIGN</text>
+  <text x="120" y="95" font-family="'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="#272560" letter-spacing="2">INSTITUTE</text>
+</svg>

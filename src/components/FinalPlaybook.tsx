@@ -65,7 +65,7 @@ export default function FinalPlaybook() {
 
       const canvas = await html2canvas(gridRef.current, {
         scale: 2,
-        backgroundColor: "#0f172a",
+        backgroundColor: "#ffffff",
         useCORS: true,
       });
 
@@ -89,10 +89,9 @@ export default function FinalPlaybook() {
 
       // Title
       pdf.setFontSize(18);
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFillColor(15, 23, 42);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(0, 0, pageWidth, pageHeight, "F");
-      pdf.setTextColor(226, 232, 240);
+      pdf.setTextColor(39, 37, 96);
       pdf.text(
         `Leesburg Grid: ${researchInput.name}`,
         pageWidth / 2,
@@ -100,7 +99,7 @@ export default function FinalPlaybook() {
         { align: "center" }
       );
       pdf.setFontSize(10);
-      pdf.setTextColor(148, 163, 184);
+      pdf.setTextColor(100, 116, 139);
       pdf.text(
         `${researchInput.location} | ${new Date().toLocaleDateString()}`,
         pageWidth / 2,
@@ -325,7 +324,7 @@ export default function FinalPlaybook() {
           >
             {isCopied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-green-400" />
+                <Check className="w-3.5 h-3.5 text-green-600" />
                 Copied
               </>
             ) : (

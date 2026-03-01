@@ -182,7 +182,7 @@ export default function StrategyWorkshop() {
         </div>
 
         {error && (
-          <div className="text-red-400 text-sm bg-red-400/10 px-4 py-2 rounded-lg mb-4">
+          <div className="text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-2 rounded-lg mb-4">
             {error}
             <button
               onClick={generateStrategy}

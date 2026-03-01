@@ -58,7 +58,7 @@ export default function DroppableQuadrant({
         <span
           className={`text-xs font-mono px-2 py-0.5 rounded-full ${
             isFull
-              ? "bg-green-500/20 text-green-400"
+              ? "bg-green-100 text-green-700"
               : `${meta.bgColor} ${meta.color}`
           }`}
         >

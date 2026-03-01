@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f172a;
-  --foreground: #e2e8f0;
-  --card: #1e293b;
-  --card-foreground: #e2e8f0;
-  --primary: #3b82f6;
+  --background: #ffffff;
+  --foreground: #272560;
+  --card: #f8fafc;
+  --card-foreground: #272560;
+  --primary: #272560;
   --primary-foreground: #ffffff;
-  --accent: #f59e0b;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-  --border: #334155;
+  --accent: #F5C342;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
 }
 
 @theme inline {
@@ -39,21 +39,21 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--card);
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--muted);
+  background: #cbd5e1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: #94a3b8;
 }
 
 /* Drag overlay styles */
 .drag-overlay {
   opacity: 0.9;
   transform: scale(1.05);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 /* Pulse animation for research */

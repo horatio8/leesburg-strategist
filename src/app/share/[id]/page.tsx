@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import type { QuadrantKey, GridState, ResearchInput } from "@/lib/types";
 import { QUADRANT_META } from "@/lib/constants";
-import { Shield, Swords, ShieldAlert, Undo2, Grid3X3, Loader2 } from "lucide-react";
+import { Shield, Swords, ShieldAlert, Undo2, Loader2 } from "lucide-react";
+import Image from "next/image";
 
 const quadrantIcons: Record<QuadrantKey, React.ElementType> = {
   "our-story": Shield,
@@ -70,10 +71,13 @@ export default function SharedPlaybook() {
     <div className="min-h-screen bg-background text-foreground">
       <nav className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
-          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-            <Grid3X3 className="w-3.5 h-3.5 text-primary-foreground" />
-          </div>
-          <span className="font-semibold text-sm">Campaign Institute</span>
+          <Image
+            src="/logo.svg"
+            alt="Campaign Institute"
+            width={180}
+            height={54}
+            className="h-9 w-auto"
+          />
           <span className="text-xs text-muted-foreground ml-2">Read-only</span>
         </div>
       </nav>

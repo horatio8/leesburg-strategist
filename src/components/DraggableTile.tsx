@@ -82,7 +82,7 @@ export default function DraggableTile({
             <div className="flex gap-1">
               <button
                 onClick={handleSave}
-                className="p-1 rounded hover:bg-muted text-green-400"
+                className="p-1 rounded hover:bg-muted text-green-600"
               >
                 <Check className="w-3.5 h-3.5" />
               </button>
@@ -116,7 +116,7 @@ export default function DraggableTile({
           {onRemove && (
             <button
               onClick={onRemove}
-              className="p-1 rounded hover:bg-muted text-red-400"
+              className="p-1 rounded hover:bg-muted text-red-600"
             >
               <X className="w-3 h-3" />
             </button>

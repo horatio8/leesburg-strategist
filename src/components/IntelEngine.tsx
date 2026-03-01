@@ -193,7 +193,7 @@ export default function IntelEngine() {
 
           {/* Error Message */}
           {error && (
-            <div className="text-red-400 text-sm bg-red-400/10 px-4 py-2 rounded-lg">
+            <div className="text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-2 rounded-lg">
               {error}
             </div>
           )}
@@ -272,7 +272,7 @@ export default function IntelEngine() {
                       {isEditing ? (
                         <button
                           onClick={() => saveEdit(section.id)}
-                          className="p-1.5 rounded-lg hover:bg-muted text-green-400"
+                          className="p-1.5 rounded-lg hover:bg-muted text-green-600"
                           title="Save"
                         >
                           <Check className="w-4 h-4" />
@@ -290,7 +290,7 @@ export default function IntelEngine() {
                       )}
                       <button
                         onClick={() => deleteSection(section.id)}
-                        className="p-1.5 rounded-lg hover:bg-muted text-red-400"
+                        className="p-1.5 rounded-lg hover:bg-muted text-red-600"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />

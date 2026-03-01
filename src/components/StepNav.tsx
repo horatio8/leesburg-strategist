@@ -2,6 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { Search, Grid3X3, FileText } from "lucide-react";
+import Image from "next/image";
 
 const steps = [
   { num: 1, label: "Intel Engine", icon: Search },
@@ -30,13 +31,15 @@ export default function StepNav() {
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Grid3X3 className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-lg tracking-tight">
-              Campaign Institute
-            </span>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/logo.svg"
+              alt="Campaign Institute"
+              width={200}
+              height={60}
+              className="h-10 w-auto"
+              priority
+            />
           </div>
 
           <div className="flex items-center gap-1">

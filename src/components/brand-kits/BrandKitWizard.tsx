@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type {
   BrandKitOption,
+  BrandKitOptionCategory,
   PaletteOption,
   FontPairingOption,
   VoiceOption,
@@ -64,7 +65,7 @@ export function BrandKitWizard({ brandKitId, onFinalize }: BrandKitWizardProps) 
           // Skip to first step that has options
           const categories = new Set(data.map((o) => o.category));
           const firstStep = STEPS.find(
-            (s) => s.key !== "review" && categories.has(s.key as string)
+            (s) => s.key !== "review" && categories.has(s.key as BrandKitOptionCategory)
           );
           if (firstStep) setCurrentStep(firstStep.key);
         }

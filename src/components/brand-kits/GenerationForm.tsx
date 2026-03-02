@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles, Loader2, ArrowRight, AlertCircle, X } from "lucide-react";
-import { JobProgress } from "@/components/shared/JobProgress";
+import JobProgress from "@/components/shared/JobProgress";
 import { useBrandKitJobs } from "@/lib/hooks/use-brand-kit-jobs";
 
 interface GenerationFormProps {
@@ -209,7 +209,7 @@ export function GenerationForm({
 
         {jobId && (
           <div className="mt-4">
-            <JobProgress job={job} />
+            {job && <JobProgress job={job} />}
             {isFailed && (
               <div className="mt-4">
                 <div className="flex items-center gap-2 text-sm text-red-400 mb-3">

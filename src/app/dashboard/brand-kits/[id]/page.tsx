@@ -46,9 +46,13 @@ type SetupPath = "extract" | "generate" | null;
 
 function determineMode(
   kit: BrandKit | null,
-  options: BrandKitOption[]
+  options: BrandKitOption[],
+  forceSetup: boolean
 ): PageMode {
   if (!kit) return "loading";
+
+  // Allow user to return to setup mode
+  if (forceSetup) return "setup";
 
   // If there are unfinalized options, show the wizard
   if (options.length > 0) return "selecting";
@@ -76,6 +80,7 @@ export default function BrandKitDetailPage() {
   const [saved, setSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [setupPath, setSetupPath] = useState<SetupPath>(null);
+  const [forceSetup, setForceSetup] = useState(false);
 
   /* ─── form state ─── */
   const [name, setName] = useState("");
@@ -251,11 +256,13 @@ export default function BrandKitDetailPage() {
   /* ─── callbacks for child components ─── */
   const handleExtractionComplete = () => {
     setSetupPath(null);
+    setForceSetup(false);
     loadKit();
   };
 
   const handleGenerationComplete = () => {
     setSetupPath(null);
+    setForceSetup(false);
     loadKit();
   };
 
@@ -275,7 +282,7 @@ export default function BrandKitDetailPage() {
 
   if (!kit) return null;
 
-  const mode = determineMode(kit, options);
+  const mode = determineMode(kit, options, forceSetup);
   const orgId = currentOrg?.id || kit.org_id;
 
   return (
@@ -340,17 +347,26 @@ export default function BrandKitDetailPage() {
           </div>
 
           <div className="text-center">
-            <button
-              onClick={() => {
-                /* skip to manual editing — set a color to trigger editing mode */
-                setColors([{ key: "primary", value: "#3B82F6" }]);
-                /* force a quick save so mode becomes editing */
-                handleSave();
-              }}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Skip and build manually &rarr;
-            </button>
+            {forceSetup ? (
+              <button
+                onClick={() => setForceSetup(false)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                &larr; Back to Editor
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  /* skip to manual editing — set a color to trigger editing mode */
+                  setColors([{ key: "primary", value: "#3B82F6" }]);
+                  /* force a quick save so mode becomes editing */
+                  handleSave();
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Skip and build manually &rarr;
+              </button>
+            )}
           </div>
         </>
       )}
@@ -465,6 +481,16 @@ export default function BrandKitDetailPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setForceSetup(true);
+                  setSetupPath(null);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg text-sm transition-colors"
+              >
+                <Sparkles className="w-4 h-4" />
+                AI Tools
+              </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}

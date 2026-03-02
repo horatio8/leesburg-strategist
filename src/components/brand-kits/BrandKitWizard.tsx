@@ -283,8 +283,14 @@ function OptionSelector({
     );
   }
 
+  // Use wider cards for palette (colors need space) and when there are few options
+  const gridClass =
+    step === "palette" || options.length <= 2
+      ? "grid grid-cols-1 lg:grid-cols-2 gap-4"
+      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className={gridClass}>
       {options.map((option) => (
         <OptionCard
           key={option.id}
@@ -346,23 +352,45 @@ function PaletteCard({ data }: { data: PaletteOption }) {
   return (
     <div>
       <h4 className="font-semibold text-foreground mb-1">{data.name}</h4>
-      <p className="text-xs text-muted-foreground mb-3">{data.mood}</p>
-      <div className="flex gap-1 mb-3">
+      {data.mood && (
+        <p className="text-xs text-muted-foreground mb-3">{data.mood}</p>
+      )}
+
+      {/* Color strip preview */}
+      <div className="flex rounded-lg overflow-hidden mb-3 h-12 border border-border">
         {Object.entries(data.colors || {}).map(([key, color]) => (
-          <div key={key} className="text-center">
+          <div
+            key={key}
+            className="flex-1"
+            style={{ backgroundColor: color }}
+            title={`${key}: ${color}`}
+          />
+        ))}
+      </div>
+
+      {/* Color details — stacked vertically */}
+      <div className="flex flex-col gap-2 mb-3">
+        {Object.entries(data.colors || {}).map(([key, color]) => (
+          <div key={key} className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-lg border border-border"
+              className="w-8 h-8 rounded-lg border border-border shrink-0"
               style={{ backgroundColor: color }}
             />
-            <p className="text-[9px] text-muted-foreground mt-1 capitalize truncate w-10">
+            <p className="text-sm font-medium text-foreground capitalize">
               {key}
+            </p>
+            <p className="text-xs text-muted-foreground font-mono ml-auto">
+              {color}
             </p>
           </div>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground line-clamp-2">
-        {data.rationale}
-      </p>
+
+      {data.rationale && (
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {data.rationale}
+        </p>
+      )}
     </div>
   );
 }

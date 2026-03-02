@@ -39,6 +39,7 @@ export async function updateSession(request: NextRequest) {
   const publicRoutes = ["/", "/login", "/signup", "/auth/callback", "/auth/confirm"];
   const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith("/share/") || pathname.startsWith("/api/district-boundary");
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
+  const isOnboarding = pathname === "/onboarding";
 
   // Redirect authenticated users away from auth pages
   if (user && isAuthRoute) {
@@ -52,6 +53,50 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  // For authenticated users on dashboard routes: check if they have an org
+  // Skip for API routes, onboarding, framework pages, and admin pages
+  if (
+    user &&
+    pathname.startsWith("/dashboard") &&
+    !pathname.startsWith("/api/")
+  ) {
+    const { data: memberships } = await supabase
+      .from("org_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_super_admin")
+      .eq("id", user.id)
+      .single();
+
+    const hasMembership = memberships && memberships.length > 0;
+    const isSuperAdmin = profile?.is_super_admin === true;
+
+    if (!hasMembership && !isSuperAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Redirect away from onboarding if user already has an org
+  if (user && isOnboarding) {
+    const { data: memberships } = await supabase
+      .from("org_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
+
+    if (memberships && memberships.length > 0) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -15,7 +15,8 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const admin = createServiceClient();
+  const { data, error } = await admin
     .from("creatives")
     .select("*, concept:creative_concepts(id, name, status)")
     .eq("campaign_id", id)

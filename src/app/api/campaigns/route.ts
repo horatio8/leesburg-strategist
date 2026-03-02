@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const orgId = req.nextUrl.searchParams.get("org_id");
   if (!orgId) {
     return NextResponse.json(
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   const status = req.nextUrl.searchParams.get("status");
 
-  let query = supabase
+  let query = admin
     .from("campaigns")
     .select("*")
     .eq("org_id", orgId)
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const body = await req.json();
   const { org_id, name, brief, priority, platforms, brand_kit_id } = body;
 
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("campaigns")
     .insert({
       org_id,

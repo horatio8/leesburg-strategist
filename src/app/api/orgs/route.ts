@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 // GET /api/orgs — list user's organizations (super admin: all)
@@ -19,8 +19,9 @@ export async function GET() {
     .single();
 
   if (profile?.is_super_admin) {
-    // Super admin sees all orgs
-    const { data: orgs, error } = await supabase
+    // Super admin sees all orgs (use service client to bypass RLS)
+    const admin = createServiceClient();
+    const { data: orgs, error } = await admin
       .from("organizations")
       .select("*")
       .order("created_at", { ascending: false });
@@ -31,8 +32,9 @@ export async function GET() {
     return NextResponse.json(orgs);
   }
 
-  // Regular user: get orgs through membership
-  const { data: memberships, error } = await supabase
+  // Regular user: get orgs through membership (use service client to avoid RLS issues)
+  const admin = createServiceClient();
+  const { data: memberships, error } = await admin
     .from("org_members")
     .select("org_id, role, organizations(*)")
     .eq("user_id", user.id);
@@ -76,8 +78,12 @@ export async function POST(req: Request) {
     .replace(/^-|-$/g, "")
     .substring(0, 60);
 
+  // Use service client to bypass RLS for org creation (chicken-and-egg: user
+  // can't be a member of an org that doesn't exist yet)
+  const admin = createServiceClient();
+
   // Check slug uniqueness
-  const { data: existing } = await supabase
+  const { data: existing } = await admin
     .from("organizations")
     .select("id")
     .eq("slug", slug)
@@ -86,7 +92,7 @@ export async function POST(req: Request) {
   const finalSlug = existing ? `${slug}-${Date.now().toString(36)}` : slug;
 
   // Create org
-  const { data: org, error: orgError } = await supabase
+  const { data: org, error: orgError } = await admin
     .from("organizations")
     .insert({
       name: name.trim(),
@@ -102,7 +108,7 @@ export async function POST(req: Request) {
   }
 
   // Add creator as owner
-  const { error: memberError } = await supabase.from("org_members").insert({
+  const { error: memberError } = await admin.from("org_members").insert({
     org_id: org.id,
     user_id: user.id,
     role: "owner",

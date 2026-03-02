@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -15,8 +15,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
+
   // Fetch strategies for this campaign
-  const { data: strategies, error: stratError } = await supabase
+  const { data: strategies, error: stratError } = await admin
     .from("campaign_strategies")
     .select("*")
     .eq("campaign_id", id)
@@ -27,7 +29,7 @@ export async function GET(
   }
 
   // Fetch creative concepts for this campaign
-  const { data: concepts, error: conceptError } = await supabase
+  const { data: concepts, error: conceptError } = await admin
     .from("creative_concepts")
     .select("*")
     .eq("campaign_id", id)

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -15,7 +15,8 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const admin = createServiceClient();
+  const { data, error } = await admin
     .from("campaigns")
     .select("*")
     .eq("id", id)
@@ -42,6 +43,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const body = await req.json();
   const allowedFields = [
     "name",
@@ -63,7 +65,7 @@ export async function PATCH(
 
   updates.updated_at = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("campaigns")
     .update(updates)
     .eq("id", id)
@@ -91,7 +93,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { error } = await supabase.from("campaigns").delete().eq("id", id);
+  const admin = createServiceClient();
+  const { error } = await admin.from("campaigns").delete().eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

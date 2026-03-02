@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 // GET /api/orgs/[id]/members — list org members
@@ -15,7 +15,8 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: members, error } = await supabase
+  const admin = createServiceClient();
+  const { data: members, error } = await admin
     .from("org_members")
     .select("*, profiles(*)")
     .eq("org_id", id)
@@ -42,6 +43,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const body = await req.json();
   const { user_id, role } = body;
 
@@ -55,7 +57,7 @@ export async function POST(
   const validRoles = ["owner", "admin", "member", "viewer"];
   const memberRole = validRoles.includes(role) ? role : "member";
 
-  const { data: member, error } = await supabase
+  const { data: member, error } = await admin
     .from("org_members")
     .insert({
       org_id: id,
@@ -92,6 +94,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("user_id");
 
@@ -102,7 +105,7 @@ export async function DELETE(
     );
   }
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("org_members")
     .delete()
     .eq("org_id", id)

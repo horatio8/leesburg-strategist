@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 // GET /api/orgs/[id] — get org details
@@ -15,7 +15,8 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: org, error } = await supabase
+  const admin = createServiceClient();
+  const { data: org, error } = await admin
     .from("organizations")
     .select("*")
     .eq("id", id)
@@ -45,6 +46,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const body = await req.json();
   const { name, industry, website, logo_url } = body;
 
@@ -54,7 +56,7 @@ export async function PATCH(
   if (website !== undefined) updates.website = website;
   if (logo_url !== undefined) updates.logo_url = logo_url;
 
-  const { data: org, error } = await supabase
+  const { data: org, error } = await admin
     .from("organizations")
     .update(updates)
     .eq("id", id)

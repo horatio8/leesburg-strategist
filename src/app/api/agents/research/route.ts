@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import {
@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const { campaign_id } = await req.json();
 
   if (!campaign_id) {
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Fetch campaign with brief
-  const { data: campaign, error: campaignError } = await supabase
+  const { data: campaign, error: campaignError } = await admin
     .from("campaigns")
     .select("*")
     .eq("id", campaign_id)
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
   // Create job (triggers Realtime for client)
   let job;
   try {
-    job = await createJob(supabase, {
+    job = await createJob(admin, {
       campaign_id,
       org_id: campaign.org_id,
       type: "research",
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
 
   // Run research in the same request (within maxDuration)
   try {
-    await startJob(supabase, jobId);
+    await startJob(admin, jobId);
 
     // 1. Optional: Fetch Meta Ad Library data for competitors
     let adLibraryData: Record<string, unknown> | null = null;
@@ -191,7 +192,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { error: insertError } = await supabase
+    const { error: insertError } = await admin
       .from("campaign_research")
       .insert(researchEntries);
 
@@ -200,7 +201,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Log the decision
-    await logDecision(supabase, {
+    await logDecision(admin, {
       campaign_id,
       agent: "research-agent",
       decision_type: "research_complete",
@@ -215,14 +216,14 @@ export async function POST(req: NextRequest) {
     });
 
     // 5. Update campaign status to researching if still in draft
-    const { data: currentCampaign } = await supabase
+    const { data: currentCampaign } = await admin
       .from("campaigns")
       .select("status")
       .eq("id", campaign_id)
       .single();
 
     if (currentCampaign?.status === "draft") {
-      await supabase
+      await admin
         .from("campaigns")
         .update({
           status: "researching",
@@ -233,7 +234,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Complete the job (triggers Realtime)
-    await completeJob(supabase, jobId, {
+    await completeJob(admin, jobId, {
       research_count: researchEntries.length,
       competitors_analyzed: parsed.competitor_analysis?.length || 0,
       has_ad_library_data: !!adLibraryData,
@@ -242,7 +243,7 @@ export async function POST(req: NextRequest) {
     const message =
       error instanceof Error ? error.message : "Research failed";
     console.error("Research agent error:", error);
-    await failJob(supabase, jobId, message);
+    await failJob(admin, jobId, message);
   }
 
   return NextResponse.json({ jobId });

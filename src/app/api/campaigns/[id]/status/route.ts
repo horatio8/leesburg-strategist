@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import type { CampaignStatus } from "@/lib/types";
 
@@ -29,10 +29,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const { status: newStatus } = await req.json();
 
   // Get current campaign
-  const { data: campaign, error: fetchError } = await supabase
+  const { data: campaign, error: fetchError } = await admin
     .from("campaigns")
     .select("status, phase")
     .eq("id", id)
@@ -67,7 +68,7 @@ export async function PATCH(
     complete: 7,
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("campaigns")
     .update({
       status: newStatus,

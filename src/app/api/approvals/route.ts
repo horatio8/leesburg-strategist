@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -11,12 +11,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const { searchParams } = new URL(req.url);
   const orgId = searchParams.get("org_id");
   const campaignId = searchParams.get("campaign_id");
   const status = searchParams.get("status");
 
-  let query = supabase
+  let query = admin
     .from("approvals")
     .select("*, campaign:campaigns(id, name, status)")
     .order("created_at", { ascending: false });
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const body = await req.json();
   const { campaign_id, org_id, type, item_id, item_summary, agent_reasoning } =
     body;
@@ -61,7 +63,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("approvals")
     .insert({
       campaign_id,

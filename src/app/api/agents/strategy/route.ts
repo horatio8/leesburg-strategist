@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import {
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
   const { campaign_id } = await req.json();
 
   if (!campaign_id) {
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Fetch campaign
-  const { data: campaign, error: campaignError } = await supabase
+  const { data: campaign, error: campaignError } = await admin
     .from("campaigns")
     .select("*")
     .eq("id", campaign_id)
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Fetch research data for this campaign
-  const { data: research } = await supabase
+  const { data: research } = await admin
     .from("campaign_research")
     .select("*")
     .eq("campaign_id", campaign_id)
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
   // Create job
   let job;
   try {
-    job = await createJob(supabase, {
+    job = await createJob(admin, {
       campaign_id,
       org_id: campaign.org_id,
       type: "strategy",
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
 
   // Run strategy agent
   try {
-    await startJob(supabase, jobId);
+    await startJob(admin, jobId);
 
     const anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
     const parsed = JSON.parse(jsonMatch[0]);
 
     // Store strategy
-    const { data: strategy, error: stratError } = await supabase
+    const { data: strategy, error: stratError } = await admin
       .from("campaign_strategies")
       .insert({
         campaign_id,
@@ -155,11 +156,11 @@ export async function POST(req: NextRequest) {
         })
       );
 
-      await supabase.from("creative_concepts").insert(conceptRows);
+      await admin.from("creative_concepts").insert(conceptRows);
     }
 
     // Log the decision
-    await logDecision(supabase, {
+    await logDecision(admin, {
       campaign_id,
       agent: "strategy-agent",
       decision_type: "strategy_complete",
@@ -176,7 +177,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Update campaign status
-    const { data: currentCampaign } = await supabase
+    const { data: currentCampaign } = await admin
       .from("campaigns")
       .select("status")
       .eq("id", campaign_id)
@@ -186,7 +187,7 @@ export async function POST(req: NextRequest) {
       currentCampaign?.status === "researching" ||
       currentCampaign?.status === "draft"
     ) {
-      await supabase
+      await admin
         .from("campaigns")
         .update({
           status: "ideation",
@@ -197,7 +198,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Complete job
-    await completeJob(supabase, jobId, {
+    await completeJob(admin, jobId, {
       strategy_id: strategy.id,
       concepts_count: parsed.creative_concepts?.length || 0,
     });
@@ -205,7 +206,7 @@ export async function POST(req: NextRequest) {
     const errorMessage =
       error instanceof Error ? error.message : "Strategy generation failed";
     console.error("Strategy agent error:", error);
-    await failJob(supabase, jobId, errorMessage);
+    await failJob(admin, jobId, errorMessage);
   }
 
   return NextResponse.json({ jobId });

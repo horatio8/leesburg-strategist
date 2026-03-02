@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -11,8 +11,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = createServiceClient();
+
   // Check super admin
-  const { data: profile } = await supabase
+  const { data: profile } = await admin
     .from("profiles")
     .select("is_super_admin")
     .eq("id", user.id)
@@ -23,7 +25,7 @@ export async function GET() {
   }
 
   // Get all profiles with their org membership count
-  const { data: profiles, error } = await supabase
+  const { data: profiles, error } = await admin
     .from("profiles")
     .select("id, display_name, is_super_admin, created_at")
     .order("created_at", { ascending: false });
@@ -33,7 +35,7 @@ export async function GET() {
   }
 
   // Get org counts per user
-  const { data: memberships } = await supabase
+  const { data: memberships } = await admin
     .from("org_members")
     .select("user_id");
 

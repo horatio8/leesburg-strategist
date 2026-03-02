@@ -1,7 +1,7 @@
 export const BRAND_GENERATION_AGENT_CONFIG = {
   model: "claude-sonnet-4-20250514" as const,
   maxTokens: 8000,
-  maxDuration: 60,
+  maxDuration: 300,
 };
 
 export function buildGenerationSystemPrompt(): string {

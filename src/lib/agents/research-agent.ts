@@ -3,7 +3,7 @@ import type { CampaignBrief } from "../types";
 export const RESEARCH_AGENT_CONFIG = {
   model: "claude-sonnet-4-20250514" as const,
   maxTokens: 8000,
-  maxDuration: 60, // Vercel Hobby plan limit
+  maxDuration: 300, // Vercel Pro plan
 };
 
 export function buildResearchSystemPrompt(): string {

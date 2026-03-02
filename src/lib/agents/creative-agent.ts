@@ -3,7 +3,7 @@ import type { CampaignBrief, CreativeConcept, BrandKit } from "../types";
 export const CREATIVE_AGENT_CONFIG = {
   model: "claude-sonnet-4-20250514" as const,
   maxTokens: 8000,
-  maxDuration: 60,
+  maxDuration: 300,
 };
 
 export function buildCreativeSystemPrompt(): string {

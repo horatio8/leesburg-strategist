@@ -53,6 +53,7 @@ export async function PATCH(
     "logo_urls",
     "canva_brand_kit_id",
     "status",
+    "source",
   ];
   const updates: Record<string, unknown> = {};
   for (const key of allowedFields) {

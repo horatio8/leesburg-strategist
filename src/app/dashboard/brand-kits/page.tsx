@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Palette, Loader2, ChevronRight } from "lucide-react";
+import { Plus, Palette, Loader2, ChevronRight, Globe, Sparkles } from "lucide-react";
 import { useOrg } from "@/lib/hooks/use-org";
 import type { BrandKit } from "@/lib/types";
 
@@ -131,6 +131,16 @@ export default function BrandKitsPage() {
                   {kit.name}
                 </h3>
                 <div className="flex items-center gap-2">
+                  {kit.source && kit.source !== "manual" && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
+                      {kit.source === "extracted" ? (
+                        <Globe className="w-3 h-3" />
+                      ) : (
+                        <Sparkles className="w-3 h-3" />
+                      )}
+                      {kit.source === "extracted" ? "Extracted" : "Generated"}
+                    </span>
+                  )}
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       kit.status === "active"

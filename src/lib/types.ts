@@ -198,6 +198,8 @@ export interface Campaign {
   updated_at: string;
 }
 
+export type BrandKitSource = "manual" | "extracted" | "generated";
+
 export interface BrandKit {
   id: string;
   org_id: string;
@@ -207,9 +209,102 @@ export interface BrandKit {
   voice_guide: string | null;
   logo_urls: string[];
   canva_brand_kit_id: string | null;
+  source: BrandKitSource;
   status: "draft" | "active" | "archived";
   created_at: string;
   updated_at: string;
+}
+
+// ============================================================
+// Brand Kit Options (Extraction & Generation)
+// ============================================================
+
+export type BrandKitOptionType = "extraction" | "generation";
+export type BrandKitOptionCategory =
+  | "logo"
+  | "palette"
+  | "font_pairing"
+  | "voice"
+  | "style_direction"
+  | "full_extraction";
+
+export interface BrandKitOption {
+  id: string;
+  brand_kit_id: string;
+  type: BrandKitOptionType;
+  category: BrandKitOptionCategory;
+  data:
+    | LogoOption
+    | PaletteOption
+    | FontPairingOption
+    | VoiceOption
+    | StyleDirectionOption
+    | BrandExtractionResult;
+  selected: boolean;
+  created_at: string;
+}
+
+export interface LogoOption {
+  name: string;
+  description: string;
+  style: string;
+  image_base64?: string;
+  image_url?: string;
+}
+
+export interface PaletteOption {
+  name: string;
+  colors: Record<string, string>;
+  mood: string;
+  rationale: string;
+}
+
+export interface FontPairingOption {
+  name: string;
+  heading: string;
+  body: string;
+  caption?: string;
+  rationale: string;
+}
+
+export interface VoiceOption {
+  tone: string;
+  personality: string;
+  sample_copy: string;
+  do_list: string[];
+  dont_list: string[];
+}
+
+export interface StyleDirectionOption {
+  name: string;
+  description: string;
+  visual_elements: string[];
+  mood_board_prompt: string;
+  example_image_base64?: string;
+}
+
+export interface BrandExtractionResult {
+  logo_urls: string[];
+  colors: Record<string, string>;
+  fonts: Record<string, string>;
+  voice_analysis: string;
+  visual_style: string;
+  source_url: string;
+}
+
+export interface BrandExtractionInput {
+  website_url: string;
+  brand_kit_id: string;
+  org_id: string;
+}
+
+export interface BrandGenerationInput {
+  brand_name: string;
+  industry: string;
+  target_audience: string;
+  personality_traits: string[];
+  brand_kit_id: string;
+  org_id: string;
 }
 
 export type ResearchType =

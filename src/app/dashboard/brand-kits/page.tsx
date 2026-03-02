@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Palette, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Palette, Loader2, ChevronRight } from "lucide-react";
 import { useOrg } from "@/lib/hooks/use-org";
 import type { BrandKit } from "@/lib/types";
 
 export default function BrandKitsPage() {
   const { currentOrg, isLoading: orgLoading } = useOrg();
+  const router = useRouter();
   const [kits, setKits] = useState<BrandKit[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -41,7 +43,8 @@ export default function BrandKitsPage() {
       });
       if (res.ok) {
         const created = await res.json();
-        setKits((prev) => [created, ...prev]);
+        // Navigate directly to the edit page for the new kit
+        router.push(`/dashboard/brand-kits/${created.id}`);
       }
     } catch (err) {
       console.error(err);
@@ -72,7 +75,11 @@ export default function BrandKitsPage() {
           disabled={creating}
           className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
-          <Plus className="w-4 h-4" />
+          {creating ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Plus className="w-4 h-4" />
+          )}
           {creating ? "Creating..." : "New Brand Kit"}
         </button>
       </div>
@@ -103,32 +110,40 @@ export default function BrandKitsPage() {
             disabled={creating}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            Create Brand Kit
+            {creating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+            {creating ? "Creating..." : "Create Brand Kit"}
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {kits.map((kit) => (
-            <div
+            <button
               key={kit.id}
-              className="bg-card rounded-xl border border-border p-5 hover:border-primary/30 transition-colors"
+              onClick={() => router.push(`/dashboard/brand-kits/${kit.id}`)}
+              className="bg-card rounded-xl border border-border p-5 hover:border-primary/30 hover:shadow-md transition-all text-left group cursor-pointer"
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-foreground truncate">
                   {kit.name}
                 </h3>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    kit.status === "active"
-                      ? "bg-green-500/10 text-green-400"
-                      : kit.status === "archived"
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-slate-500/10 text-slate-400"
-                  }`}
-                >
-                  {kit.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      kit.status === "active"
+                        ? "bg-green-500/10 text-green-400"
+                        : kit.status === "archived"
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-slate-500/10 text-slate-400"
+                    }`}
+                  >
+                    {kit.status}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
 
               {/* Color swatches */}
@@ -159,7 +174,7 @@ export default function BrandKitsPage() {
                   day: "numeric",
                 })}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

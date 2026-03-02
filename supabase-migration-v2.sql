@@ -1,6 +1,7 @@
 -- ============================================================
 -- AI Marketing Agency Platform - Migration v2
 -- Multi-tenancy, campaigns, agents, approvals
+-- Safe to re-run (idempotent)
 -- Run in Supabase SQL Editor
 -- ============================================================
 
@@ -18,17 +19,17 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 CREATE POLICY "Users can view own profile"
-  ON profiles FOR SELECT
-  USING (auth.uid() = id);
+  ON profiles FOR SELECT USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
-  ON profiles FOR UPDATE
-  USING (auth.uid() = id);
+  ON profiles FOR UPDATE USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile"
-  ON profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Auto-create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -53,7 +54,33 @@ WHERE id NOT IN (SELECT id FROM profiles)
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 2. RLS HELPER FUNCTIONS
+-- 2. ORGANIZATIONS (tables before functions that reference them)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS organizations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  slug text UNIQUE NOT NULL,
+  logo_url text,
+  industry text,
+  website text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
+-- 3. ORG MEMBERS (must exist before is_org_member function)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS org_members (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  role text NOT NULL DEFAULT 'member' CHECK (role IN ('owner','admin','member','viewer')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(org_id, user_id)
+);
+
+-- ============================================================
+-- 4. RLS HELPER FUNCTIONS (now that tables exist)
 -- ============================================================
 CREATE OR REPLACE FUNCTION is_org_member(org uuid) RETURNS boolean AS $$
   SELECT EXISTS (
@@ -73,66 +100,46 @@ CREATE OR REPLACE FUNCTION get_user_orgs() RETURNS SETOF uuid AS $$
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 -- ============================================================
--- 3. ORGANIZATIONS
+-- 4a. RLS for organizations
 -- ============================================================
-CREATE TABLE IF NOT EXISTS organizations (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  slug text UNIQUE NOT NULL,
-  logo_url text,
-  industry text,
-  website text,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view their orgs" ON organizations;
 CREATE POLICY "Org members can view their orgs"
-  ON organizations FOR SELECT
-  USING (is_org_member(id) OR is_super_admin());
+  ON organizations FOR SELECT USING (is_org_member(id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Anyone can create an org" ON organizations;
 CREATE POLICY "Anyone can create an org"
-  ON organizations FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  ON organizations FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+DROP POLICY IF EXISTS "Org members can update their orgs" ON organizations;
 CREATE POLICY "Org members can update their orgs"
-  ON organizations FOR UPDATE
-  USING (is_org_member(id) OR is_super_admin());
+  ON organizations FOR UPDATE USING (is_org_member(id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Super admins can delete orgs" ON organizations;
 CREATE POLICY "Super admins can delete orgs"
-  ON organizations FOR DELETE
-  USING (is_super_admin());
+  ON organizations FOR DELETE USING (is_super_admin());
 
 -- ============================================================
--- 4. ORG MEMBERS
+-- 4b. RLS for org_members
 -- ============================================================
-CREATE TABLE IF NOT EXISTS org_members (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  role text NOT NULL DEFAULT 'member' CHECK (role IN ('owner','admin','member','viewer')),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(org_id, user_id)
-);
-
 ALTER TABLE org_members ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view membership" ON org_members;
 CREATE POLICY "Org members can view membership"
-  ON org_members FOR SELECT
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON org_members FOR SELECT USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can add members" ON org_members;
 CREATE POLICY "Org members can add members"
-  ON org_members FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  ON org_members FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+DROP POLICY IF EXISTS "Org admins can update members" ON org_members;
 CREATE POLICY "Org admins can update members"
-  ON org_members FOR UPDATE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON org_members FOR UPDATE USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org admins can remove members" ON org_members;
 CREATE POLICY "Org admins can remove members"
-  ON org_members FOR DELETE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON org_members FOR DELETE USING (is_org_member(org_id) OR is_super_admin());
 
 -- ============================================================
 -- 5. BRAND KITS
@@ -153,21 +160,21 @@ CREATE TABLE IF NOT EXISTS brand_kits (
 
 ALTER TABLE brand_kits ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view brand kits" ON brand_kits;
 CREATE POLICY "Org members can view brand kits"
-  ON brand_kits FOR SELECT
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON brand_kits FOR SELECT USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can create brand kits" ON brand_kits;
 CREATE POLICY "Org members can create brand kits"
-  ON brand_kits FOR INSERT
-  WITH CHECK (is_org_member(org_id) OR is_super_admin());
+  ON brand_kits FOR INSERT WITH CHECK (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can update brand kits" ON brand_kits;
 CREATE POLICY "Org members can update brand kits"
-  ON brand_kits FOR UPDATE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON brand_kits FOR UPDATE USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can delete brand kits" ON brand_kits;
 CREATE POLICY "Org members can delete brand kits"
-  ON brand_kits FOR DELETE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON brand_kits FOR DELETE USING (is_org_member(org_id) OR is_super_admin());
 
 -- ============================================================
 -- 6. CAMPAIGNS
@@ -192,21 +199,21 @@ CREATE TABLE IF NOT EXISTS campaigns (
 
 ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view campaigns" ON campaigns;
 CREATE POLICY "Org members can view campaigns"
-  ON campaigns FOR SELECT
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON campaigns FOR SELECT USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can create campaigns" ON campaigns;
 CREATE POLICY "Org members can create campaigns"
-  ON campaigns FOR INSERT
-  WITH CHECK (is_org_member(org_id) OR is_super_admin());
+  ON campaigns FOR INSERT WITH CHECK (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can update campaigns" ON campaigns;
 CREATE POLICY "Org members can update campaigns"
-  ON campaigns FOR UPDATE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON campaigns FOR UPDATE USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can delete campaigns" ON campaigns;
 CREATE POLICY "Org members can delete campaigns"
-  ON campaigns FOR DELETE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON campaigns FOR DELETE USING (is_org_member(org_id) OR is_super_admin());
 
 -- ============================================================
 -- 7. CAMPAIGN RESEARCH
@@ -224,27 +231,27 @@ CREATE TABLE IF NOT EXISTS campaign_research (
 
 ALTER TABLE campaign_research ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view campaign research" ON campaign_research;
 CREATE POLICY "Org members can view campaign research"
-  ON campaign_research FOR SELECT
-  USING (EXISTS (
+  ON campaign_research FOR SELECT USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can create campaign research" ON campaign_research;
 CREATE POLICY "Org members can create campaign research"
-  ON campaign_research FOR INSERT
-  WITH CHECK (EXISTS (
+  ON campaign_research FOR INSERT WITH CHECK (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can update campaign research" ON campaign_research;
 CREATE POLICY "Org members can update campaign research"
-  ON campaign_research FOR UPDATE
-  USING (EXISTS (
+  ON campaign_research FOR UPDATE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can delete campaign research" ON campaign_research;
 CREATE POLICY "Org members can delete campaign research"
-  ON campaign_research FOR DELETE
-  USING (EXISTS (
+  ON campaign_research FOR DELETE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
@@ -264,27 +271,27 @@ CREATE TABLE IF NOT EXISTS campaign_strategies (
 
 ALTER TABLE campaign_strategies ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view strategies" ON campaign_strategies;
 CREATE POLICY "Org members can view strategies"
-  ON campaign_strategies FOR SELECT
-  USING (EXISTS (
+  ON campaign_strategies FOR SELECT USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can create strategies" ON campaign_strategies;
 CREATE POLICY "Org members can create strategies"
-  ON campaign_strategies FOR INSERT
-  WITH CHECK (EXISTS (
+  ON campaign_strategies FOR INSERT WITH CHECK (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can update strategies" ON campaign_strategies;
 CREATE POLICY "Org members can update strategies"
-  ON campaign_strategies FOR UPDATE
-  USING (EXISTS (
+  ON campaign_strategies FOR UPDATE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can delete strategies" ON campaign_strategies;
 CREATE POLICY "Org members can delete strategies"
-  ON campaign_strategies FOR DELETE
-  USING (EXISTS (
+  ON campaign_strategies FOR DELETE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
@@ -307,27 +314,27 @@ CREATE TABLE IF NOT EXISTS creative_concepts (
 
 ALTER TABLE creative_concepts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view concepts" ON creative_concepts;
 CREATE POLICY "Org members can view concepts"
-  ON creative_concepts FOR SELECT
-  USING (EXISTS (
+  ON creative_concepts FOR SELECT USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can create concepts" ON creative_concepts;
 CREATE POLICY "Org members can create concepts"
-  ON creative_concepts FOR INSERT
-  WITH CHECK (EXISTS (
+  ON creative_concepts FOR INSERT WITH CHECK (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can update concepts" ON creative_concepts;
 CREATE POLICY "Org members can update concepts"
-  ON creative_concepts FOR UPDATE
-  USING (EXISTS (
+  ON creative_concepts FOR UPDATE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can delete concepts" ON creative_concepts;
 CREATE POLICY "Org members can delete concepts"
-  ON creative_concepts FOR DELETE
-  USING (EXISTS (
+  ON creative_concepts FOR DELETE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
@@ -350,27 +357,27 @@ CREATE TABLE IF NOT EXISTS creatives (
 
 ALTER TABLE creatives ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view creatives" ON creatives;
 CREATE POLICY "Org members can view creatives"
-  ON creatives FOR SELECT
-  USING (EXISTS (
+  ON creatives FOR SELECT USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can create creatives" ON creatives;
 CREATE POLICY "Org members can create creatives"
-  ON creatives FOR INSERT
-  WITH CHECK (EXISTS (
+  ON creatives FOR INSERT WITH CHECK (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can update creatives" ON creatives;
 CREATE POLICY "Org members can update creatives"
-  ON creatives FOR UPDATE
-  USING (EXISTS (
+  ON creatives FOR UPDATE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "Org members can delete creatives" ON creatives;
 CREATE POLICY "Org members can delete creatives"
-  ON creatives FOR DELETE
-  USING (EXISTS (
+  ON creatives FOR DELETE USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
@@ -394,21 +401,21 @@ CREATE TABLE IF NOT EXISTS approvals (
 
 ALTER TABLE approvals ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view approvals" ON approvals;
 CREATE POLICY "Org members can view approvals"
-  ON approvals FOR SELECT
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON approvals FOR SELECT USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can create approvals" ON approvals;
 CREATE POLICY "Org members can create approvals"
-  ON approvals FOR INSERT
-  WITH CHECK (is_org_member(org_id) OR is_super_admin());
+  ON approvals FOR INSERT WITH CHECK (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can update approvals" ON approvals;
 CREATE POLICY "Org members can update approvals"
-  ON approvals FOR UPDATE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON approvals FOR UPDATE USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can delete approvals" ON approvals;
 CREATE POLICY "Org members can delete approvals"
-  ON approvals FOR DELETE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON approvals FOR DELETE USING (is_org_member(org_id) OR is_super_admin());
 
 -- ============================================================
 -- 12. DECISIONS LOG
@@ -429,15 +436,15 @@ CREATE TABLE IF NOT EXISTS decisions_log (
 
 ALTER TABLE decisions_log ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view decisions" ON decisions_log;
 CREATE POLICY "Org members can view decisions"
-  ON decisions_log FOR SELECT
-  USING (EXISTS (
+  ON decisions_log FOR SELECT USING (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
+DROP POLICY IF EXISTS "System can create decisions" ON decisions_log;
 CREATE POLICY "System can create decisions"
-  ON decisions_log FOR INSERT
-  WITH CHECK (EXISTS (
+  ON decisions_log FOR INSERT WITH CHECK (EXISTS (
     SELECT 1 FROM campaigns c WHERE c.id = campaign_id AND (is_org_member(c.org_id) OR is_super_admin())
   ));
 
@@ -461,24 +468,38 @@ CREATE TABLE IF NOT EXISTS jobs (
 
 ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Org members can view jobs" ON jobs;
 CREATE POLICY "Org members can view jobs"
-  ON jobs FOR SELECT
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON jobs FOR SELECT USING (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can create jobs" ON jobs;
 CREATE POLICY "Org members can create jobs"
-  ON jobs FOR INSERT
-  WITH CHECK (is_org_member(org_id) OR is_super_admin());
+  ON jobs FOR INSERT WITH CHECK (is_org_member(org_id) OR is_super_admin());
 
+DROP POLICY IF EXISTS "Org members can update jobs" ON jobs;
 CREATE POLICY "Org members can update jobs"
-  ON jobs FOR UPDATE
-  USING (is_org_member(org_id) OR is_super_admin());
+  ON jobs FOR UPDATE USING (is_org_member(org_id) OR is_super_admin());
 
 -- ============================================================
 -- 14. ENABLE SUPABASE REALTIME
 -- ============================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE jobs;
-ALTER PUBLICATION supabase_realtime ADD TABLE campaigns;
-ALTER PUBLICATION supabase_realtime ADD TABLE approvals;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE jobs;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE campaigns;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE approvals;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ============================================================
 -- 15. INDEXES
@@ -508,13 +529,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_updated_at ON profiles;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS set_updated_at ON organizations;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON organizations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS set_updated_at ON brand_kits;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON brand_kits
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS set_updated_at ON campaigns;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON campaigns
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS set_updated_at ON campaign_strategies;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON campaign_strategies
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ============================================================
+-- 17. SET ADMIN USER
+-- ============================================================
+UPDATE profiles SET is_super_admin = true
+WHERE id = (SELECT id FROM auth.users WHERE email = 'jamesflynn@me.com');

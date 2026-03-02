@@ -3,7 +3,7 @@ import type { CampaignBrief, CampaignResearch } from "../types";
 export const STRATEGY_AGENT_CONFIG = {
   model: "claude-sonnet-4-20250514" as const,
   maxTokens: 8000,
-  maxDuration: 300,
+  maxDuration: 60,
 };
 
 export function buildStrategySystemPrompt(): string {

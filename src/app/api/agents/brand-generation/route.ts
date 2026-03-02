@@ -14,7 +14,7 @@ import {
 } from "@/lib/services/job-runner";
 import { generateImage } from "@/lib/services/imagen";
 
-export const maxDuration = 300;
+export const maxDuration = 60; // Vercel Hobby plan limit
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();

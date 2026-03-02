@@ -16,7 +16,7 @@ import {
 import { searchMetaAds, summarizeAdData } from "@/lib/services/meta-ad-library";
 import type { CampaignBrief } from "@/lib/types";
 
-export const maxDuration = 300; // Must be a literal for Next.js segment config
+export const maxDuration = 60; // Vercel Hobby plan limit
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();

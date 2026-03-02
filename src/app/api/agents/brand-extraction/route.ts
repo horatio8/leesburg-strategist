@@ -13,7 +13,7 @@ import {
   failJob,
 } from "@/lib/services/job-runner";
 
-export const maxDuration = 300;
+export const maxDuration = 60; // Vercel Hobby plan limit
 
 async function fetchWebsiteHTML(url: string): Promise<string> {
   const controller = new AbortController();

@@ -283,14 +283,8 @@ function OptionSelector({
     );
   }
 
-  // Use wider cards for palette (colors need space) and when there are few options
-  const gridClass =
-    step === "palette" || options.length <= 2
-      ? "grid grid-cols-1 lg:grid-cols-2 gap-4"
-      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
-
   return (
-    <div className={gridClass}>
+    <div className="flex flex-col gap-4">
       {options.map((option) => (
         <OptionCard
           key={option.id}

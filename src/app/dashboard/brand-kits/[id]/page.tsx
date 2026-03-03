@@ -14,10 +14,10 @@ import {
   Palette,
   Type,
   MessageSquare,
-  Settings2,
   Globe,
   Sparkles,
   RotateCcw,
+  Image as ImageIcon,
 } from "lucide-react";
 import type { BrandKit, BrandKitOption } from "@/lib/types";
 import { useOrg } from "@/lib/hooks/use-org";
@@ -89,6 +89,8 @@ export default function BrandKitDetailPage() {
   const [colors, setColors] = useState<{ key: string; value: string }[]>([]);
   const [fonts, setFonts] = useState<{ key: string; value: string }[]>([]);
 
+  const [logos, setLogos] = useState<string[]>([]);
+
   /* ─── new entry inputs ─── */
   const [newColorKey, setNewColorKey] = useState("");
   const [newColorValue, setNewColorValue] = useState("#3B82F6");
@@ -130,6 +132,7 @@ export default function BrandKitDetailPage() {
           value,
         }))
       );
+      setLogos(kitData.logo_urls || []);
     } catch (err) {
       console.error(err);
       router.push("/dashboard/brand-kits");
@@ -165,6 +168,7 @@ export default function BrandKitDetailPage() {
           voice_guide: voiceGuide || null,
           colors: colorsObj,
           fonts: fontsObj,
+          logo_urls: logos,
         }),
       });
       if (res.ok) {
@@ -178,7 +182,7 @@ export default function BrandKitDetailPage() {
     } finally {
       setSaving(false);
     }
-  }, [kitId, name, status, voiceGuide, colors, fonts]);
+  }, [kitId, name, status, voiceGuide, colors, fonts, logos]);
 
   /* ─── delete ─── */
   const handleDelete = async () => {
@@ -251,6 +255,11 @@ export default function BrandKitDetailPage() {
     setFonts((prev) =>
       prev.map((f, i) => (i === index ? { ...f, [field]: val } : f))
     );
+  };
+
+  /* ─── logo helpers ─── */
+  const removeLogo = (index: number) => {
+    setLogos((prev) => prev.filter((_, i) => i !== index));
   };
 
   /* ─── callbacks for child components ─── */
@@ -455,160 +464,158 @@ export default function BrandKitDetailPage() {
       )}
 
       {/* ═══════════════════════════════════════════ */}
-      {/* EDITING MODE — manual editor (existing UI)   */}
+      {/* EDITING MODE — visual brand editor           */}
       {/* ═══════════════════════════════════════════ */}
       {mode === "editing" && (
         <>
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Edit Brand Kit
-              </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Define your brand identity for AI-generated content
+          {/* ─── Header: inline-editable name + controls ─── */}
+          <div className="mb-8">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Brand Kit Name"
+              className="text-2xl font-bold text-foreground bg-transparent w-full outline-none placeholder:text-muted-foreground/50 border-b border-transparent hover:border-border focus:border-primary/30 pb-1 transition-colors"
+            />
+            <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center gap-2.5">
+                <select
+                  value={status}
+                  onChange={(e) =>
+                    setStatus(e.target.value as BrandKit["status"])
+                  }
+                  className="px-2.5 py-1 bg-muted border-none rounded-full text-xs font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer appearance-none"
+                >
+                  <option value="draft">⏳ Draft</option>
+                  <option value="active">✓ Active</option>
+                  <option value="archived">📦 Archived</option>
+                </select>
                 {kit.source && kit.source !== "manual" && (
-                  <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
                     {kit.source === "extracted" ? (
                       <Globe className="w-3 h-3" />
                     ) : (
                       <Sparkles className="w-3 h-3" />
                     )}
-                    {kit.source === "extracted"
-                      ? "Extracted"
-                      : "AI Generated"}
+                    {kit.source === "extracted" ? "Extracted" : "AI Generated"}
                   </span>
                 )}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setForceSetup(true);
-                  setSetupPath(null);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg text-sm transition-colors"
-              >
-                <Sparkles className="w-4 h-4" />
-                AI Tools
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex items-center gap-1.5 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-colors disabled:opacity-50"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : saved ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
-              </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setForceSetup(true);
+                    setSetupPath(null);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg text-xs transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  AI Tools
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:bg-red-500/10 rounded-lg text-xs transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-6">
-            {/* ─── Name & Status ─── */}
-            <div className="bg-card rounded-xl border border-border p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Settings2 className="w-4 h-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold text-foreground">
-                  General
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="My Brand Kit"
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  />
+          <div className="space-y-8">
+            {/* ═══ COLORS ═══ */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Brand Colors
+                  </h2>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
-                    Status
-                  </label>
-                  <select
-                    value={status}
-                    onChange={(e) =>
-                      setStatus(e.target.value as BrandKit["status"])
-                    }
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="active">Active</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* ─── Colors ─── */}
-            <div className="bg-card rounded-xl border border-border p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Palette className="w-4 h-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold text-foreground">
-                  Brand Colors
-                </h2>
+                <button
+                  onClick={() =>
+                    setColors((prev) => [
+                      ...prev,
+                      {
+                        key: `color-${prev.length + 1}`,
+                        value: "#6366F1",
+                      },
+                    ])
+                  }
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add
+                </button>
               </div>
 
+              {/* Color strip preview */}
               {colors.length > 0 && (
-                <div className="space-y-2 mb-4">
+                <div className="flex rounded-xl overflow-hidden h-14 border border-border mb-4">
                   {colors.map((color, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={color.value}
-                        onChange={(e) => updateColor(i, "value", e.target.value)}
-                        className="w-10 h-10 rounded-lg border border-border cursor-pointer shrink-0"
-                      />
-                      <input
-                        type="text"
-                        value={color.key}
-                        onChange={(e) => updateColor(i, "key", e.target.value)}
-                        placeholder="Color name"
-                        className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      />
-                      <code className="text-xs text-muted-foreground font-mono px-2 py-1 bg-muted rounded min-w-[80px] text-center">
-                        {color.value}
-                      </code>
-                      <button
-                        onClick={() => removeColor(i)}
-                        className="p-1.5 text-muted-foreground hover:text-red-400 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <div
+                      key={i}
+                      className="flex-1 transition-colors"
+                      style={{ backgroundColor: color.value }}
+                      title={`${color.key}: ${color.value}`}
+                    />
                   ))}
                 </div>
               )}
 
-              {/* Quick-add presets */}
-              {COLOR_PRESETS.filter(
-                (p) => !colors.some((c) => c.key === p.key)
-              ).length > 0 && (
-                <div className="mb-3">
-                  <p className="text-xs text-muted-foreground mb-1.5">
-                    Quick add:
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {COLOR_PRESETS.filter(
-                      (p) => !colors.some((c) => c.key === p.key)
-                    ).map((preset) => (
+              {/* Color cards grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {colors.map((color, i) => (
+                  <div
+                    key={i}
+                    className="group bg-card rounded-xl border border-border overflow-hidden"
+                  >
+                    {/* Color swatch — click to change */}
+                    <label className="block relative cursor-pointer">
+                      <div
+                        className="w-full h-20 transition-colors"
+                        style={{ backgroundColor: color.value }}
+                      />
+                      <input
+                        type="color"
+                        value={color.value}
+                        onChange={(e) =>
+                          updateColor(i, "value", e.target.value)
+                        }
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </label>
+                    {/* Name + hex below */}
+                    <div className="p-3">
+                      <input
+                        type="text"
+                        value={color.key}
+                        onChange={(e) =>
+                          updateColor(i, "key", e.target.value)
+                        }
+                        className="w-full text-sm font-medium text-foreground bg-transparent outline-none capitalize border-b border-transparent focus:border-primary/30 pb-0.5 transition-colors"
+                        placeholder="Color name"
+                      />
+                      <div className="flex items-center justify-between mt-1.5">
+                        <code className="text-[11px] text-muted-foreground font-mono">
+                          {color.value}
+                        </code>
+                        <button
+                          onClick={() => removeColor(i)}
+                          className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-red-400 transition-all"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Quick-add presets as mini buttons */}
+                {colors.length === 0 && (
+                  <div className="col-span-full flex flex-wrap gap-2">
+                    {COLOR_PRESETS.map((preset) => (
                       <button
                         key={preset.key}
                         onClick={() =>
@@ -617,89 +624,29 @@ export default function BrandKitDetailPage() {
                             { key: preset.key, value: "#3B82F6" },
                           ])
                         }
-                        className="px-2.5 py-1 text-xs rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                        className="px-3 py-1.5 text-xs rounded-full border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
                       >
                         + {preset.label}
                       </button>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {/* Custom add */}
-              <div className="flex items-center gap-2 pt-2 border-t border-border">
-                <input
-                  type="color"
-                  value={newColorValue}
-                  onChange={(e) => setNewColorValue(e.target.value)}
-                  className="w-10 h-10 rounded-lg border border-border cursor-pointer shrink-0"
-                />
-                <input
-                  type="text"
-                  value={newColorKey}
-                  onChange={(e) => setNewColorKey(e.target.value)}
-                  placeholder="Custom color name..."
-                  onKeyDown={(e) => e.key === "Enter" && addColor()}
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                <button
-                  onClick={addColor}
-                  disabled={!newColorKey.trim()}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add
-                </button>
+                )}
               </div>
-            </div>
+            </section>
 
-            {/* ─── Fonts ─── */}
-            <div className="bg-card rounded-xl border border-border p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Type className="w-4 h-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold text-foreground">
-                  Typography
-                </h2>
-              </div>
-
-              {fonts.length > 0 && (
-                <div className="space-y-2 mb-4">
-                  {fonts.map((font, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={font.key}
-                        onChange={(e) => updateFont(i, "key", e.target.value)}
-                        placeholder="Usage (e.g. heading)"
-                        className="w-1/3 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      />
-                      <input
-                        type="text"
-                        value={font.value}
-                        onChange={(e) => updateFont(i, "value", e.target.value)}
-                        placeholder="Font name (e.g. Inter, Playfair Display)"
-                        className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      />
-                      <button
-                        onClick={() => removeFont(i)}
-                        className="p-1.5 text-muted-foreground hover:text-red-400 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+            {/* ═══ TYPOGRAPHY ═══ */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Type className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Typography
+                  </h2>
                 </div>
-              )}
-
-              {/* Quick-add presets */}
-              {FONT_PRESETS.filter(
-                (p) => !fonts.some((f) => f.key === p.key)
-              ).length > 0 && (
-                <div className="mb-3">
-                  <p className="text-xs text-muted-foreground mb-1.5">
-                    Quick add:
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
+                {FONT_PRESETS.filter(
+                  (p) => !fonts.some((f) => f.key === p.key)
+                ).length > 0 && (
+                  <div className="flex items-center gap-1.5">
                     {FONT_PRESETS.filter(
                       (p) => !fonts.some((f) => f.key === p.key)
                     ).map((preset) => (
@@ -711,106 +658,219 @@ export default function BrandKitDetailPage() {
                             { key: preset.key, value: "" },
                           ])
                         }
-                        className="px-2.5 py-1 text-xs rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                        className="flex items-center gap-1 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                       >
-                        + {preset.label}
+                        <Plus className="w-3 h-3" />
+                        {preset.label}
                       </button>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Custom add */}
-              <div className="flex items-center gap-2 pt-2 border-t border-border">
-                <input
-                  type="text"
-                  value={newFontKey}
-                  onChange={(e) => setNewFontKey(e.target.value)}
-                  placeholder="Usage..."
-                  className="w-1/3 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                <input
-                  type="text"
-                  value={newFontValue}
-                  onChange={(e) => setNewFontValue(e.target.value)}
-                  placeholder="Font name..."
-                  onKeyDown={(e) => e.key === "Enter" && addFont()}
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
+              <div className="space-y-3">
+                {fonts.map((font, i) => (
+                  <div
+                    key={i}
+                    className="group bg-card rounded-xl border border-border p-5"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider capitalize">
+                        {font.key}
+                      </span>
+                      <button
+                        onClick={() => removeFont(i)}
+                        className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-red-400 transition-all"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {/* Type specimen preview */}
+                    <p
+                      className={`text-foreground mb-3 ${
+                        font.key === "heading"
+                          ? "text-2xl font-bold"
+                          : font.key === "caption"
+                            ? "text-xs text-muted-foreground"
+                            : "text-base"
+                      }`}
+                    >
+                      {font.value || (
+                        <span className="text-muted-foreground/40 italic">
+                          Set a font...
+                        </span>
+                      )}
+                    </p>
+                    {/* Editable font name */}
+                    <input
+                      type="text"
+                      value={font.value}
+                      onChange={(e) =>
+                        updateFont(i, "value", e.target.value)
+                      }
+                      placeholder="Font name (e.g. Inter, Playfair Display)"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"
+                    />
+                  </div>
+                ))}
+
+                {fonts.length === 0 && (
+                  <div className="bg-card/50 rounded-xl border border-dashed border-border p-8 text-center">
+                    <Type className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-3">
+                      No fonts defined yet
+                    </p>
+                    <div className="flex justify-center gap-2">
+                      {FONT_PRESETS.map((preset) => (
+                        <button
+                          key={preset.key}
+                          onClick={() =>
+                            setFonts((prev) => [
+                              ...prev,
+                              { key: preset.key, value: "" },
+                            ])
+                          }
+                          className="px-3 py-1.5 text-xs rounded-full border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                        >
+                          + {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* ═══ VOICE & TONE ═══ */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Voice & Tone
+                </h2>
+              </div>
+
+              <div className="bg-card rounded-xl border border-border p-5">
+                {voiceGuide ? (
+                  <div className="space-y-3">
+                    {/* Parse voice guide into formatted sections */}
+                    {voiceGuide.split("\n\n").map((section, i) => {
+                      const colonIdx = section.indexOf(":");
+                      if (colonIdx > 0 && colonIdx < 20) {
+                        const label = section.slice(0, colonIdx).trim();
+                        const content = section.slice(colonIdx + 1).trim();
+                        return (
+                          <div key={i}>
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                              {label}
+                            </p>
+                            <p className="text-sm text-foreground leading-relaxed">
+                              {content}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <p
+                          key={i}
+                          className="text-sm text-foreground leading-relaxed"
+                        >
+                          {section}
+                        </p>
+                      );
+                    })}
+                    {/* Edit area — collapsed by default, expand to edit */}
+                    <details className="pt-3 border-t border-border">
+                      <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
+                        Edit raw text
+                      </summary>
+                      <textarea
+                        value={voiceGuide}
+                        onChange={(e) => setVoiceGuide(e.target.value)}
+                        rows={8}
+                        className="w-full mt-3 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
+                      />
+                    </details>
+                  </div>
+                ) : (
+                  <div>
+                    <textarea
+                      value={voiceGuide}
+                      onChange={(e) => setVoiceGuide(e.target.value)}
+                      placeholder="Describe your brand's voice and tone. For example:&#10;&#10;Tone: Professional yet approachable&#10;&#10;Personality: Warm, confident, action-oriented&#10;&#10;Do: Use active voice, be concise&#10;&#10;Don't: Use jargon, be overly formal"
+                      rows={6}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      This guide helps the AI generate content that matches
+                      your brand voice.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* ═══ LOGOS ═══ */}
+            {logos.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Logos
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {logos.map((logo, i) => (
+                    <div
+                      key={i}
+                      className="group relative bg-white rounded-xl border border-border p-4 flex items-center justify-center"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={logo}
+                        alt={`Logo ${i + 1}`}
+                        className="max-h-24 object-contain"
+                      />
+                      <button
+                        onClick={() => removeLogo(i)}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-black/60 text-white rounded-full hover:bg-red-500 transition-all"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ─── Save Bar ─── */}
+            <div className="sticky bottom-4 z-10">
+              <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border shadow-lg p-3 flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {saved
+                    ? "✓ All changes saved"
+                    : "Changes are unsaved"}
+                </p>
                 <button
-                  onClick={addFont}
-                  disabled={!newFontKey.trim() || !newFontValue.trim()}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : saved ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
                 </button>
               </div>
             </div>
 
-            {/* ─── Voice Guide ─── */}
-            <div className="bg-card rounded-xl border border-border p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold text-foreground">
-                  Voice & Tone Guide
-                </h2>
-              </div>
-              <textarea
-                value={voiceGuide}
-                onChange={(e) => setVoiceGuide(e.target.value)}
-                placeholder="Describe your brand's voice and tone. For example: 'Professional yet approachable. Use active voice. Avoid jargon. Our tone is warm, confident, and action-oriented...'"
-                rows={6}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-y"
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                This guide helps the AI generate content that matches your brand
-                voice.
-              </p>
-            </div>
-
-            {/* ─── Preview ─── */}
-            {colors.length > 0 && (
-              <div className="bg-card rounded-xl border border-border p-5">
-                <h2 className="text-sm font-semibold text-foreground mb-4">
-                  Color Preview
-                </h2>
-                <div className="flex flex-wrap gap-3">
-                  {colors.map((color, i) => (
-                    <div key={i} className="text-center">
-                      <div
-                        className="w-16 h-16 rounded-xl border border-border shadow-sm"
-                        style={{ backgroundColor: color.value }}
-                      />
-                      <p className="text-xs text-muted-foreground mt-1.5 capitalize">
-                        {color.key}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground/60 font-mono">
-                        {color.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ─── Bottom Save ─── */}
-            <div className="flex justify-end pb-8">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : saved ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
-              </button>
-            </div>
+            {/* Bottom spacing */}
+            <div className="h-4" />
           </div>
         </>
       )}

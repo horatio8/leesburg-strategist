@@ -4,12 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Megaphone,
-  Palette,
+  Users,
   CheckCircle2,
   Settings,
   Shield,
-  FileText,
 } from "lucide-react";
 import OrgSwitcher from "./OrgSwitcher";
 import { useOrg } from "@/lib/hooks/use-org";
@@ -22,25 +20,14 @@ const navItems = [
     exact: true,
   },
   {
-    label: "Campaigns",
-    href: "/dashboard/campaigns",
-    icon: Megaphone,
-  },
-  {
-    label: "Brand Kits",
-    href: "/dashboard/brand-kits",
-    icon: Palette,
+    label: "Clients",
+    href: "/dashboard/clients",
+    icon: Users,
   },
   {
     label: "Approvals",
     href: "/dashboard/approvals",
     icon: CheckCircle2,
-  },
-  {
-    label: "Frameworks",
-    href: "/dashboard/frameworks",
-    icon: FileText,
-    description: "Messaging frameworks",
   },
 ];
 

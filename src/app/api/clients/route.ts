@@ -13,8 +13,6 @@ export async function GET(req: NextRequest) {
 
   const admin = createServiceClient();
   const orgId = req.nextUrl.searchParams.get("org_id");
-  const clientId = req.nextUrl.searchParams.get("client_id");
-
   if (!orgId) {
     return NextResponse.json(
       { error: "org_id is required" },
@@ -25,14 +23,10 @@ export async function GET(req: NextRequest) {
   const status = req.nextUrl.searchParams.get("status");
 
   let query = admin
-    .from("campaigns")
+    .from("clients")
     .select("*")
     .eq("org_id", orgId)
-    .order("updated_at", { ascending: false });
-
-  if (clientId) {
-    query = query.eq("client_id", clientId);
-  }
+    .order("created_at", { ascending: false });
 
   if (status) {
     query = query.eq("status", status);
@@ -59,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceClient();
   const body = await req.json();
-  const { org_id, client_id, name, brief, priority, platforms, brand_kit_id } = body;
+  const { org_id, name, industry, website, logo_url, notes } = body;
 
   if (!org_id || !name) {
     return NextResponse.json(
@@ -69,18 +63,15 @@ export async function POST(req: NextRequest) {
   }
 
   const { data, error } = await admin
-    .from("campaigns")
+    .from("clients")
     .insert({
       org_id,
-      client_id: client_id || null,
-      name,
-      brief: brief || {},
-      priority: priority || "normal",
-      platforms: platforms || [],
-      brand_kit_id: brand_kit_id || null,
-      created_by: user.id,
-      status: "draft",
-      phase: 0,
+      name: name.trim(),
+      industry: industry || null,
+      website: website || null,
+      logo_url: logo_url || null,
+      notes: notes || null,
+      status: "active",
     })
     .select()
     .single();

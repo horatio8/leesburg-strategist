@@ -22,9 +22,10 @@ const PLATFORM_OPTIONS = [
 
 interface CampaignBriefFormProps {
   orgId: string;
+  clientId?: string;
 }
 
-export default function CampaignBriefForm({ orgId }: CampaignBriefFormProps) {
+export default function CampaignBriefForm({ orgId, clientId }: CampaignBriefFormProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,6 +85,7 @@ export default function CampaignBriefForm({ orgId }: CampaignBriefFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           org_id: orgId,
+          client_id: clientId || undefined,
           name: name.trim(),
           brief: { ...brief, platforms },
           platforms,
@@ -158,44 +160,49 @@ export default function CampaignBriefForm({ orgId }: CampaignBriefFormProps) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
-              Brand / Client Name
-            </label>
-            <input
-              type="text"
-              value={brief.brand_name || ""}
-              onChange={(e) => updateBrief("brand_name", e.target.value)}
-              placeholder="e.g. Acme Corp"
-              className={inputClass}
-            />
-          </div>
+          {/* Only show client fields if not under a client context */}
+          {!clientId && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Brand / Client Name
+                </label>
+                <input
+                  type="text"
+                  value={brief.brand_name || ""}
+                  onChange={(e) => updateBrief("brand_name", e.target.value)}
+                  placeholder="e.g. Acme Corp"
+                  className={inputClass}
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
-              Industry
-            </label>
-            <input
-              type="text"
-              value={brief.industry || ""}
-              onChange={(e) => updateBrief("industry", e.target.value)}
-              placeholder="e.g. SaaS, E-commerce, Political"
-              className={inputClass}
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Industry
+                </label>
+                <input
+                  type="text"
+                  value={brief.industry || ""}
+                  onChange={(e) => updateBrief("industry", e.target.value)}
+                  placeholder="e.g. SaaS, E-commerce, Political"
+                  className={inputClass}
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
-              Website
-            </label>
-            <input
-              type="url"
-              value={brief.website || ""}
-              onChange={(e) => updateBrief("website", e.target.value)}
-              placeholder="https://example.com"
-              className={inputClass}
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Website
+                </label>
+                <input
+                  type="url"
+                  value={brief.website || ""}
+                  onChange={(e) => updateBrief("website", e.target.value)}
+                  placeholder="https://example.com"
+                  className={inputClass}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
 

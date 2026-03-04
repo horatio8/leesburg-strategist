@@ -15,6 +15,10 @@ interface AppState {
   // Framework context
   frameworkId: string | null;
   setFrameworkId: (id: string | null) => void;
+  campaignId: string | null;
+  setCampaignId: (id: string | null) => void;
+  orgId: string | null;
+  setOrgId: (id: string | null) => void;
   loadFramework: (data: MessagingFramework) => void;
   saveStatus: "idle" | "saving" | "saved" | "error";
   setSaveStatus: (status: "idle" | "saving" | "saved" | "error") => void;
@@ -100,9 +104,15 @@ export const useAppStore = create<AppState>((set) => ({
   // Framework context
   frameworkId: null,
   setFrameworkId: (id) => set({ frameworkId: id }),
+  campaignId: null,
+  setCampaignId: (id) => set({ campaignId: id }),
+  orgId: null,
+  setOrgId: (id) => set({ orgId: id }),
   loadFramework: (data: MessagingFramework) =>
     set({
       frameworkId: data.id,
+      campaignId: data.campaign_id || null,
+      orgId: data.org_id || null,
       currentStep: data.current_step || 1,
       researchInput: {
         entityType: data.entity_type || "candidate",
@@ -262,6 +272,8 @@ export const useAppStore = create<AppState>((set) => ({
   resetAll: () =>
     set({
       frameworkId: null,
+      campaignId: null,
+      orgId: null,
       currentStep: 1,
       researchInput: { ...initialResearchInput },
       researchSections: [],
@@ -323,6 +335,8 @@ useAppStore.subscribe((state, prevState) => {
           opposition_research: current.oppositionResearch,
           wells: current.wells,
           grid: current.grid,
+          campaign_id: current.campaignId,
+          org_id: current.orgId,
         }),
       });
 

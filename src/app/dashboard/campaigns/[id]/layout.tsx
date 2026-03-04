@@ -10,6 +10,7 @@ import {
   Lightbulb,
   Palette,
   ScrollText,
+  FileText,
   Loader2,
 } from "lucide-react";
 import CampaignPhaseTracker from "@/components/campaigns/CampaignPhaseTracker";
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/research", label: "Research", icon: Search },
   { href: "/strategy", label: "Strategy", icon: Lightbulb },
   { href: "/creative", label: "Creative", icon: Palette },
+  { href: "/frameworks", label: "Frameworks", icon: FileText },
   { href: "/decisions", label: "Decisions", icon: ScrollText },
 ];
 

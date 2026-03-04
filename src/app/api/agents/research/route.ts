@@ -54,6 +54,20 @@ export async function POST(req: NextRequest) {
 
   const brief = campaign.brief as CampaignBrief;
 
+  // If campaign is under a client, augment brief with client data
+  if (campaign.client_id) {
+    const { data: client } = await admin
+      .from("clients")
+      .select("name, industry, website")
+      .eq("id", campaign.client_id)
+      .single();
+    if (client) {
+      if (!brief.brand_name && client.name) brief.brand_name = client.name;
+      if (!brief.industry && client.industry) brief.industry = client.industry;
+      if (!brief.website && client.website) brief.website = client.website;
+    }
+  }
+
   // Create job (triggers Realtime for client)
   let job;
   try {

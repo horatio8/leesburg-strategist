@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
 
   const admin = createServiceClient();
   const orgId = req.nextUrl.searchParams.get("org_id");
+  const clientId = req.nextUrl.searchParams.get("client_id");
+
   if (!orgId) {
     return NextResponse.json(
       { error: "org_id is required" },
@@ -20,11 +22,17 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const { data, error } = await admin
+  let query = admin
     .from("brand_kits")
     .select("*")
     .eq("org_id", orgId)
     .order("created_at", { ascending: false });
+
+  if (clientId) {
+    query = query.eq("client_id", clientId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceClient();
   const body = await req.json();
-  const { org_id, name, colors, fonts, voice_guide, logo_urls } = body;
+  const { org_id, client_id, name, colors, fonts, voice_guide, logo_urls } = body;
 
   if (!org_id) {
     return NextResponse.json(
@@ -58,6 +66,7 @@ export async function POST(req: NextRequest) {
     .from("brand_kits")
     .insert({
       org_id,
+      client_id: client_id || null,
       name: name || "Default",
       colors: colors || {},
       fonts: fonts || {},

@@ -113,6 +113,10 @@ export interface MessagingFramework {
   wells: Record<QuadrantKey, StrategyTile[]>;
   grid: GridState;
 
+  // Hierarchy links
+  campaign_id: string | null;
+  org_id: string | null;
+
   // Metadata
   status: "draft" | "in_progress" | "complete";
   created_at: string;
@@ -155,6 +159,25 @@ export interface OrgMember {
   profile?: Profile;
 }
 
+// ============================================================
+// Client (agency's customer)
+// ============================================================
+
+export type ClientStatus = "active" | "archived";
+
+export interface Client {
+  id: string;
+  org_id: string;
+  name: string;
+  industry: string | null;
+  website: string | null;
+  logo_url: string | null;
+  notes: string | null;
+  status: ClientStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 export type CampaignStatus =
   | "draft"
   | "researching"
@@ -184,6 +207,7 @@ export interface CampaignBrief {
 export interface Campaign {
   id: string;
   org_id: string;
+  client_id: string | null;
   brand_kit_id: string | null;
   name: string;
   status: CampaignStatus;
@@ -203,6 +227,7 @@ export type BrandKitSource = "manual" | "extracted" | "generated";
 export interface BrandKit {
   id: string;
   org_id: string;
+  client_id: string | null;
   name: string;
   colors: Record<string, string>;
   fonts: Record<string, string>;

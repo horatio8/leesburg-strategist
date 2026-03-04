@@ -62,17 +62,18 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/dashboard") &&
     !pathname.startsWith("/api/")
   ) {
-    const { data: memberships } = await supabase
-      .from("org_members")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_super_admin")
-      .eq("id", user.id)
-      .single();
+    const [{ data: memberships }, { data: profile }] = await Promise.all([
+      supabase
+        .from("org_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1),
+      supabase
+        .from("profiles")
+        .select("is_super_admin")
+        .eq("id", user.id)
+        .single(),
+    ]);
 
     const hasMembership = memberships && memberships.length > 0;
     const isSuperAdmin = profile?.is_super_admin === true;

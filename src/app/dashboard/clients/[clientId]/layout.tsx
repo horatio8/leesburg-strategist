@@ -1,56 +1,31 @@
-"use client";
-
-import { useParams, usePathname } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  LayoutDashboard,
-  Palette,
-  Megaphone,
-  Building2,
-  Loader2,
-} from "lucide-react";
-import { useClient } from "@/lib/hooks/use-client";
+import { ArrowLeft, Building2 } from "lucide-react";
+import { createServiceClient } from "@/lib/supabase/server";
+import ClientDetailNav from "@/components/clients/ClientDetailNav";
+import type { Client } from "@/lib/types";
 
-const NAV_ITEMS = [
-  { href: "", label: "Overview", icon: LayoutDashboard },
-  { href: "/brand-kits", label: "Brand Kits", icon: Palette },
-  { href: "/campaigns", label: "Campaigns", icon: Megaphone },
-];
-
-export default function ClientDetailLayout({
+export default async function ClientDetailLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ clientId: string }>;
 }) {
-  const params = useParams();
-  const pathname = usePathname();
-  const clientId = params.clientId as string;
-  const { client, isLoading } = useClient(clientId);
+  const { clientId } = await params;
+  const admin = createServiceClient();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+  const { data: client, error } = await admin
+    .from("clients")
+    .select("*")
+    .eq("id", clientId)
+    .single();
+
+  if (error || !client) {
+    notFound();
   }
 
-  if (!client) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <p className="text-muted-foreground">Client not found.</p>
-        <Link
-          href="/dashboard/clients"
-          className="text-primary text-sm mt-2 inline-block"
-        >
-          Back to clients
-        </Link>
-      </div>
-    );
-  }
-
-  const basePath = `/dashboard/clients/${clientId}`;
+  const typedClient = client as Client;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -66,10 +41,10 @@ export default function ClientDetailLayout({
       {/* Client header */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
-          {client.logo_url ? (
+          {typedClient.logo_url ? (
             <img
-              src={client.logo_url}
-              alt={client.name}
+              src={typedClient.logo_url}
+              alt={typedClient.name}
               className="w-10 h-10 rounded-lg object-cover border border-border"
             />
           ) : (
@@ -80,20 +55,23 @@ export default function ClientDetailLayout({
           <div>
             <div className="flex items-center gap-3 mb-0.5">
               <h1 className="text-2xl font-bold text-foreground">
-                {client.name}
+                {typedClient.name}
               </h1>
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  client.status === "active"
+                  typedClient.status === "active"
                     ? "bg-green-500/10 text-green-400"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
-                {client.status}
+                {typedClient.status}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              {[client.industry, client.website?.replace(/^https?:\/\//, "")]
+              {[
+                typedClient.industry,
+                typedClient.website?.replace(/^https?:\/\//, ""),
+              ]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
@@ -101,33 +79,10 @@ export default function ClientDetailLayout({
         </div>
       </div>
 
-      {/* Subnav */}
-      <div className="flex items-center gap-1 border-b border-border mb-6">
-        {NAV_ITEMS.map((item) => {
-          const href = `${basePath}${item.href}`;
-          const isActive =
-            item.href === ""
-              ? pathname === basePath
-              : pathname.startsWith(href);
+      {/* Subnav (client component — needs usePathname) */}
+      <ClientDetailNav clientId={clientId} />
 
-          return (
-            <Link
-              key={item.href}
-              href={href}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                isActive
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Content */}
+      {/* Content — renders immediately, no waterfall */}
       {children}
     </div>
   );

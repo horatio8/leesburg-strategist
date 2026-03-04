@@ -24,20 +24,21 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Get all profiles with their org membership count
-  const { data: profiles, error } = await admin
-    .from("profiles")
-    .select("id, display_name, is_super_admin, created_at")
-    .order("created_at", { ascending: false });
+  // Fetch profiles and memberships in parallel
+  const [
+    { data: profiles, error },
+    { data: memberships },
+  ] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("id, display_name, is_super_admin, created_at")
+      .order("created_at", { ascending: false }),
+    admin.from("org_members").select("user_id"),
+  ]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  // Get org counts per user
-  const { data: memberships } = await admin
-    .from("org_members")
-    .select("user_id");
 
   const orgCounts: Record<string, number> = {};
   if (memberships) {

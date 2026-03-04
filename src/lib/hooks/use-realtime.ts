@@ -58,7 +58,7 @@ export function useRealtime<T extends object>(
           });
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         setIsConnected(status === "SUBSCRIBED");
       });
 

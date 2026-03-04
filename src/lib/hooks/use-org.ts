@@ -31,12 +31,14 @@ export function useOrg() {
       } = await supabase.auth.getUser();
       if (!user || cancelled) return;
 
-      // Load profile
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      // Load profile AND memberships in parallel (eliminates serial waterfall)
+      const [{ data: profileData }, { data: memberships }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).single(),
+        supabase
+          .from("org_members")
+          .select("org_id, role, organizations(*)")
+          .eq("user_id", user.id),
+      ]);
 
       if (cancelled) return;
 
@@ -44,21 +46,13 @@ export function useOrg() {
       setProfile(userProfile);
       setIsSuperAdmin(userProfile?.is_super_admin ?? false);
 
-      // Load user's orgs via membership
-      const { data: memberships } = await supabase
-        .from("org_members")
-        .select("org_id, role, organizations(*)")
-        .eq("user_id", user.id);
-
-      if (cancelled) return;
-
       if (memberships && memberships.length > 0) {
         const orgs = memberships
-          .map((m) => m.organizations as unknown as Organization)
+          .map((m: Record<string, unknown>) => m.organizations as unknown as Organization)
           .filter(Boolean);
         const roles = memberships.reduce(
-          (acc, m) => {
-            acc[m.org_id] = m.role as OrgRole;
+          (acc: Record<string, OrgRole>, m: Record<string, unknown>) => {
+            acc[m.org_id as string] = m.role as OrgRole;
             return acc;
           },
           {} as Record<string, OrgRole>
@@ -90,15 +84,16 @@ export function useOrg() {
     setCurrentOrg(org);
     // Role will be refreshed on next render cycle
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: unknown } }) => {
       if (!user) return;
+      const u = user as { id: string };
       supabase
         .from("org_members")
         .select("role")
         .eq("org_id", org.id)
-        .eq("user_id", user.id)
+        .eq("user_id", u.id)
         .single()
-        .then(({ data }) => {
+        .then(({ data }: { data: Record<string, unknown> | null }) => {
           if (data) setUserRole(data.role as OrgRole);
         });
     });

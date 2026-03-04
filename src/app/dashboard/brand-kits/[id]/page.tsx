@@ -310,13 +310,24 @@ export default function BrandKitDetailPage() {
       {/* ═══════════════════════════════════════════ */}
       {mode === "setup" && !setupPath && (
         <>
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-foreground">
-              Set Up Brand Kit
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Choose how to populate your brand identity
-            </p>
+          <div className="flex items-start justify-between mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Set Up Brand Kit
+              </h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Choose how to populate your brand identity
+              </p>
+            </div>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:bg-red-500/10 rounded-lg text-xs transition-colors disabled:opacity-50"
+              title="Delete brand kit"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -392,12 +403,22 @@ export default function BrandKitDetailPage() {
                 Pull your brand identity from an existing website
               </p>
             </div>
-            <button
-              onClick={() => setSetupPath(null)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              &larr; Choose different method
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSetupPath(null)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                &larr; Choose different method
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:bg-red-500/10 rounded-lg text-xs transition-colors disabled:opacity-50"
+                title="Delete brand kit"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
           <ExtractionForm
             brandKitId={kitId}
@@ -419,12 +440,22 @@ export default function BrandKitDetailPage() {
                 AI-powered brand identity creation
               </p>
             </div>
-            <button
-              onClick={() => setSetupPath(null)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              &larr; Choose different method
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSetupPath(null)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                &larr; Choose different method
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:bg-red-500/10 rounded-lg text-xs transition-colors disabled:opacity-50"
+                title="Delete brand kit"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
           <GenerationForm
             brandKitId={kitId}
@@ -448,13 +479,23 @@ export default function BrandKitDetailPage() {
                 Choose your preferred options for each category
               </p>
             </div>
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Start Over
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Start Over
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:bg-red-500/10 rounded-lg text-xs transition-colors disabled:opacity-50"
+                title="Delete brand kit"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
           <BrandKitWizard
             brandKitId={kitId}

@@ -41,6 +41,110 @@ async function fetchWebsiteHTML(url: string): Promise<string> {
   }
 }
 
+/**
+ * Resolve and validate high-resolution logo URLs.
+ * Tries common high-res logo paths and validates that URLs are reachable.
+ * Returns deduplicated list sorted by quality (SVG first, then by size).
+ */
+async function resolveHighResLogos(
+  extractedUrls: string[],
+  sourceUrl: string
+): Promise<string[]> {
+  const baseUrl = new URL(sourceUrl);
+  const origin = baseUrl.origin;
+
+  // Generate additional candidate URLs based on common patterns
+  const candidates = new Set<string>(extractedUrls);
+
+  // Try common high-res logo paths
+  const commonPaths = [
+    "/logo.svg",
+    "/images/logo.svg",
+    "/assets/logo.svg",
+    "/img/logo.svg",
+    "/favicon.svg",
+    "/apple-touch-icon.png",
+    "/apple-touch-icon-precomposed.png",
+    "/apple-touch-icon-180x180.png",
+    "/favicon-192x192.png",
+    "/favicon-512x512.png",
+  ];
+
+  for (const path of commonPaths) {
+    candidates.add(`${origin}${path}`);
+  }
+
+  // For each extracted URL, check if an SVG variant exists
+  for (const url of extractedUrls) {
+    try {
+      const parsed = new URL(url);
+      const svgVariant = parsed.href.replace(/\.(png|jpg|jpeg|webp|gif)(\?.*)?$/i, ".svg");
+      if (svgVariant !== parsed.href) {
+        candidates.add(svgVariant);
+      }
+    } catch {
+      // Invalid URL, skip
+    }
+  }
+
+  // Validate URLs in parallel (HEAD requests with short timeout)
+  const validatedUrls: { url: string; contentType: string; size: number }[] = [];
+
+  const checks = Array.from(candidates).map(async (url) => {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(url, {
+        method: "HEAD",
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; BrandBot/1.0; +https://leesburg.ai)",
+        },
+      });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const contentType = res.headers.get("content-type") || "";
+        const contentLength = parseInt(res.headers.get("content-length") || "0", 10);
+        // Only accept image types
+        if (contentType.includes("image/") || contentType.includes("svg")) {
+          return { url, contentType, size: contentLength };
+        }
+      }
+    } catch {
+      // URL not reachable, skip
+    }
+    return null;
+  });
+
+  const results = await Promise.all(checks);
+  for (const r of results) {
+    if (r) validatedUrls.push(r);
+  }
+
+  // Sort: SVG first, then by file size (largest first)
+  validatedUrls.sort((a, b) => {
+    const aIsSvg = a.contentType.includes("svg") ? 1 : 0;
+    const bIsSvg = b.contentType.includes("svg") ? 1 : 0;
+    if (aIsSvg !== bIsSvg) return bIsSvg - aIsSvg;
+    return b.size - a.size;
+  });
+
+  // Deduplicate and return up to 5 best logos
+  const seen = new Set<string>();
+  const finalUrls: string[] = [];
+  for (const { url } of validatedUrls) {
+    const normalized = url.replace(/\?.*$/, ""); // Normalize by removing query params for dedup
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      finalUrls.push(url);
+    }
+    if (finalUrls.length >= 5) break;
+  }
+
+  return finalUrls;
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {
@@ -135,17 +239,29 @@ export async function POST(req: NextRequest) {
     }
     const parsed = JSON.parse(jsonMatch[0]);
 
-    // 3. Store extraction as brand_kit_options
+    // 3. Resolve high-definition logo URLs
     const extraction = parsed.extraction;
+    let hdLogoUrls: string[] = [];
+    try {
+      hdLogoUrls = await resolveHighResLogos(
+        extraction.logo_urls || [],
+        website_url
+      );
+    } catch (logoErr) {
+      console.warn("HD logo resolution failed, using extracted URLs:", logoErr);
+      hdLogoUrls = extraction.logo_urls || [];
+    }
+
+    // 4. Store extraction as brand_kit_options
     const optionEntries = [];
 
-    // Full extraction result
+    // Full extraction result (with HD logo URLs)
     optionEntries.push({
       brand_kit_id,
       type: "extraction",
       category: "full_extraction",
       data: {
-        logo_urls: extraction.logo_urls || [],
+        logo_urls: hdLogoUrls,
         colors: extraction.colors || {},
         fonts: extraction.fonts || {},
         voice_analysis: extraction.voice_analysis || "",

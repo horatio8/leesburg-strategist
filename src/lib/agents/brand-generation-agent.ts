@@ -144,6 +144,18 @@ Generate multiple options for each brand element. Return as a JSON object with t
       "description": "description",
       "style": "style",
       "imagen_prompt": "prompt"
+    },
+    {
+      "name": "Fourth logo concept",
+      "description": "description",
+      "style": "style",
+      "imagen_prompt": "prompt"
+    },
+    {
+      "name": "Fifth logo concept",
+      "description": "description",
+      "style": "style",
+      "imagen_prompt": "prompt"
     }
   ]
 }

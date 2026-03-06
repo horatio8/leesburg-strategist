@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
-  CheckCircle2,
   Settings,
   Shield,
   Megaphone,
@@ -29,11 +28,6 @@ const navItems = [
     label: "Clients",
     href: "/dashboard/clients",
     icon: Users,
-  },
-  {
-    label: "Approvals",
-    href: "/dashboard/approvals",
-    icon: CheckCircle2,
   },
 ];
 

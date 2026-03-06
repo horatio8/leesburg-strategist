@@ -437,6 +437,54 @@ export interface DecisionLog {
   created_at: string;
 }
 
+// ============================================================
+// Email Campaigns
+// ============================================================
+
+export interface EmailCampaignBrief {
+  purpose?: string;
+  total_emails?: number;
+  frequency?: string;
+  email_types?: string[];
+  urgency_level?: string;
+  tone_notes?: string;
+  start_date?: string;
+  additional_context?: string;
+}
+
+export interface EmailCampaign {
+  id: string;
+  campaign_id: string;
+  org_id: string;
+  brand_kit_id: string | null;
+  framework_id: string | null;
+  name: string;
+  brief: EmailCampaignBrief;
+  status: "draft" | "generating" | "active" | "complete" | "archived";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmailCampaignEmail {
+  id: string;
+  email_campaign_id: string;
+  sequence_number: number;
+  send_date: string | null;
+  subject: string;
+  preview_text: string;
+  heading_image_prompt: string;
+  heading_image_url: string;
+  introduction: string;
+  body: string;
+  cta_text: string;
+  cta_url: string;
+  signature: string;
+  email_type: string;
+  status: "draft" | "review" | "approved" | "sent";
+  created_at: string;
+  updated_at: string;
+}
+
 export type JobStatus = "pending" | "running" | "completed" | "failed";
 
 export interface Job {

@@ -11,6 +11,7 @@ import {
   FileText,
   Sparkles,
   Wand2,
+  Mail,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { href: "/frameworks", label: "Frameworks", icon: FileText },
   { href: "/generate", label: "Generate", icon: Wand2 },
   { href: "/creative", label: "Creative", icon: Sparkles },
+  { href: "/emails", label: "Emails", icon: Mail },
   { href: "/research", label: "Research", icon: Search },
   { href: "/strategy", label: "Strategy", icon: Lightbulb },
   { href: "/decisions", label: "Decisions", icon: ScrollText },

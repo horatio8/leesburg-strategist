@@ -6,6 +6,7 @@ import type {
   CreativeConcept,
   BrandKit,
   MessagingFramework,
+  EmailCampaign,
   Job,
   Approval,
 } from "../types";
@@ -28,6 +29,9 @@ interface CampaignState {
 
   frameworks: MessagingFramework[];
   setFrameworks: (f: MessagingFramework[]) => void;
+
+  emailCampaigns: EmailCampaign[];
+  setEmailCampaigns: (e: EmailCampaign[]) => void;
 
   activeJobs: Job[];
   setActiveJobs: (j: Job[]) => void;
@@ -58,6 +62,9 @@ export const useCampaignStore = create<CampaignState>((set) => ({
   frameworks: [],
   setFrameworks: (frameworks) => set({ frameworks }),
 
+  emailCampaigns: [],
+  setEmailCampaigns: (emailCampaigns) => set({ emailCampaigns }),
+
   activeJobs: [],
   setActiveJobs: (activeJobs) => set({ activeJobs }),
   updateJob: (job) =>
@@ -76,6 +83,7 @@ export const useCampaignStore = create<CampaignState>((set) => ({
       concepts: [],
       brandKits: [],
       frameworks: [],
+      emailCampaigns: [],
       activeJobs: [],
       pendingApprovals: [],
     }),

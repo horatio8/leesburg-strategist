@@ -50,7 +50,6 @@ export async function PATCH(
     "brief",
     "priority",
     "platforms",
-    "brand_kit_id",
     "budget_total",
     "budget_spent",
   ];

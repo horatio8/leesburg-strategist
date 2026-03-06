@@ -5,6 +5,7 @@ import {
   CREATIVE_AGENT_CONFIG,
   buildCreativeSystemPrompt,
   buildCreativeUserPrompt,
+  buildCreativeUserPromptV2,
 } from "@/lib/agents/creative-agent";
 import {
   createJob,
@@ -13,7 +14,7 @@ import {
   failJob,
   logDecision,
 } from "@/lib/services/job-runner";
-import type { CampaignBrief, CreativeConcept, BrandKit } from "@/lib/types";
+import type { CampaignBrief, CreativeConcept, BrandKit, MessagingFramework } from "@/lib/types";
 
 export const maxDuration = 300; // Vercel Pro plan
 
@@ -28,7 +29,8 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createServiceClient();
-  const { campaign_id } = await req.json();
+  const body = await req.json();
+  const { campaign_id, brand_kit_id, framework_id, channels } = body;
 
   if (!campaign_id) {
     return NextResponse.json(
@@ -36,6 +38,9 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  // Determine if this is a V2 call (brand_kit_id + framework_id + channels)
+  const isV2 = !!(brand_kit_id && framework_id && channels?.length);
 
   // Fetch campaign
   const { data: campaign, error: campaignError } = await admin
@@ -49,31 +54,6 @@ export async function POST(req: NextRequest) {
       { error: "Campaign not found" },
       { status: 404 }
     );
-  }
-
-  // Fetch creative concepts
-  const { data: concepts } = await admin
-    .from("creative_concepts")
-    .select("*")
-    .eq("campaign_id", campaign_id)
-    .order("created_at", { ascending: false });
-
-  if (!concepts?.length) {
-    return NextResponse.json(
-      { error: "No creative concepts found. Run strategy first." },
-      { status: 400 }
-    );
-  }
-
-  // Optionally fetch brand kit
-  let brandKit: BrandKit | null = null;
-  if (campaign.brand_kit_id) {
-    const { data: bk } = await admin
-      .from("brand_kits")
-      .select("*")
-      .eq("id", campaign.brand_kit_id)
-      .single();
-    brandKit = bk as BrandKit | null;
   }
 
   const brief = campaign.brief as CampaignBrief;
@@ -92,6 +72,56 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  let brandKit: BrandKit | null = null;
+  let framework: MessagingFramework | null = null;
+  let concepts: CreativeConcept[] = [];
+
+  if (isV2) {
+    // V2: Fetch brand kit and framework by ID directly
+    const { data: bk } = await admin
+      .from("brand_kits")
+      .select("*")
+      .eq("id", brand_kit_id)
+      .single();
+    brandKit = bk as BrandKit | null;
+
+    if (!brandKit) {
+      return NextResponse.json(
+        { error: "Brand kit not found" },
+        { status: 404 }
+      );
+    }
+
+    const { data: fw } = await admin
+      .from("messaging_frameworks")
+      .select("*")
+      .eq("id", framework_id)
+      .single();
+    framework = fw as MessagingFramework | null;
+
+    if (!framework) {
+      return NextResponse.json(
+        { error: "Messaging framework not found" },
+        { status: 404 }
+      );
+    }
+  } else {
+    // Legacy V1: Fetch concepts and optionally brand kit from campaign
+    const { data: conceptData } = await admin
+      .from("creative_concepts")
+      .select("*")
+      .eq("campaign_id", campaign_id)
+      .order("created_at", { ascending: false });
+
+    if (!conceptData?.length) {
+      return NextResponse.json(
+        { error: "No creative concepts found. Run strategy first, or use brand kit + framework generation." },
+        { status: 400 }
+      );
+    }
+    concepts = conceptData as CreativeConcept[];
+  }
+
   // Create job
   let job;
   try {
@@ -99,7 +129,14 @@ export async function POST(req: NextRequest) {
       campaign_id,
       org_id: campaign.org_id,
       type: "creative",
-      input: { brief, concepts_count: concepts.length },
+      input: {
+        brief,
+        is_v2: isV2,
+        brand_kit_id: brand_kit_id || null,
+        framework_id: framework_id || null,
+        channels: channels || [],
+        concepts_count: concepts.length,
+      },
       started_by: user.id,
     });
   } catch (err) {
@@ -119,11 +156,19 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    const userPrompt = buildCreativeUserPrompt(
-      brief,
-      concepts as CreativeConcept[],
-      brandKit
-    );
+    // Build prompt based on V1 vs V2
+    const userPrompt = isV2
+      ? buildCreativeUserPromptV2(
+          brief,
+          brandKit!,
+          framework!,
+          channels as string[]
+        )
+      : buildCreativeUserPrompt(
+          brief,
+          concepts,
+          brandKit
+        );
 
     const message = await anthropic.messages.create({
       model: CREATIVE_AGENT_CONFIG.model,
@@ -149,16 +194,18 @@ export async function POST(req: NextRequest) {
       parsed.creatives || []
     ).map(
       (creative: Record<string, unknown>) => {
-        // Find the matching concept by name
-        const matchingConcept = concepts.find(
-          (c) =>
-            c.name ===
-            (creative.concept_name as string)
-        );
+        // For V1: Find the matching concept by name
+        const matchingConcept = !isV2
+          ? concepts.find(
+              (c) => c.name === (creative.concept_name as string)
+            )
+          : null;
 
         return {
           campaign_id,
           concept_id: matchingConcept?.id || null,
+          brand_kit_id: brand_kit_id || null,
+          framework_id: framework_id || null,
           type: (creative.type as string) || "copy",
           platform: (creative.platform as string) || "multi",
           content: {
@@ -189,9 +236,13 @@ export async function POST(req: NextRequest) {
       decision: `Generated ${creativeRows.length} creative assets across ${new Set(creativeRows.map((r: { platform: string }) => r.platform)).size} platforms`,
       reasoning:
         parsed.campaign_narrative ||
-        "Creatives generated based on approved concepts and brand guidelines",
+        "Creatives generated based on brand kit and messaging framework",
       evidence: {
         creatives_count: creativeRows.length,
+        is_v2: isV2,
+        brand_kit_id: brand_kit_id || null,
+        framework_id: framework_id || null,
+        channels: channels || [],
         concepts_used: concepts.length,
         has_brand_kit: !!brandKit,
         testing_strategy: parsed.testing_strategy || null,

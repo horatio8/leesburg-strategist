@@ -12,9 +12,15 @@ import {
   Target,
   DollarSign,
   Loader2,
+  Palette,
+  FileText,
+  Wand2,
+  CheckCircle,
+  Circle,
 } from "lucide-react";
+import Link from "next/link";
 import JobProgress from "@/components/shared/JobProgress";
-import type { Campaign, Job } from "@/lib/types";
+import type { Campaign, Job, BrandKit, MessagingFramework } from "@/lib/types";
 
 const PLATFORM_LABELS: Record<string, string> = {
   meta_feed: "Meta (Feed)",
@@ -29,14 +35,25 @@ export default function CampaignOverviewPage() {
   const campaignId = params.id as string;
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
+  const [frameworks, setFrameworks] = useState<MessagingFramework[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/campaigns/${campaignId}`);
-        if (res.ok) setCampaign(await res.json());
+        const [campRes, bkRes, fwRes] = await Promise.all([
+          fetch(`/api/campaigns/${campaignId}`),
+          fetch(`/api/campaigns/${campaignId}/brand-kits`),
+          fetch(`/api/frameworks?campaign_id=${campaignId}`),
+        ]);
+        if (campRes.ok) setCampaign(await campRes.json());
+        if (bkRes.ok) setBrandKits(await bkRes.json());
+        if (fwRes.ok) {
+          const fwData = await fwRes.json();
+          setFrameworks(Array.isArray(fwData) ? fwData : []);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -242,6 +259,77 @@ export default function CampaignOverviewPage() {
                 No platforms or competitors specified.
               </p>
             )}
+        </div>
+      </div>
+
+      {/* Creative Readiness */}
+      <div className="bg-card rounded-xl border border-border p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-foreground">
+            Creative Readiness
+          </h3>
+          {brandKits.filter((b) => b.status === "active").length > 0 &&
+            frameworks.filter((f) => f.status === "complete").length > 0 && (
+              <Link
+                href={`/dashboard/campaigns/${campaignId}/generate`}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors"
+              >
+                <Wand2 className="w-3.5 h-3.5" />
+                Generate Creative
+              </Link>
+            )}
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            {brandKits.filter((b) => b.status === "active").length > 0 ? (
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+            ) : (
+              <Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-sm text-foreground">Brand Kit</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {brandKits.filter((b) => b.status === "active").length > 0
+                  ? `${brandKits.filter((b) => b.status === "active").length} active kit(s)`
+                  : "No active brand kits"}
+              </p>
+            </div>
+            <Link
+              href={`/dashboard/campaigns/${campaignId}/brand-kits`}
+              className="text-xs text-primary hover:text-primary/80 transition-colors shrink-0"
+            >
+              {brandKits.length > 0 ? "Manage" : "Create"}
+            </Link>
+          </div>
+          <div className="flex items-center gap-3">
+            {frameworks.filter((f) => f.status === "complete").length > 0 ? (
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+            ) : (
+              <Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-sm text-foreground">
+                  Messaging Framework
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {frameworks.filter((f) => f.status === "complete").length > 0
+                  ? `${frameworks.filter((f) => f.status === "complete").length} complete framework(s)`
+                  : "No complete frameworks"}
+              </p>
+            </div>
+            <Link
+              href={`/dashboard/campaigns/${campaignId}/frameworks`}
+              className="text-xs text-primary hover:text-primary/80 transition-colors shrink-0"
+            >
+              {frameworks.length > 0 ? "Manage" : "Create"}
+            </Link>
+          </div>
         </div>
       </div>
 

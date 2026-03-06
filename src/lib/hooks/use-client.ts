@@ -3,15 +3,13 @@
 import { useEffect } from "react";
 import { useClientStore } from "../stores/client-store";
 import { useOrg } from "./use-org";
-import type { Client, BrandKit, Campaign } from "../types";
+import type { Client, Campaign } from "../types";
 
 export function useClient(clientId: string) {
   const { currentOrg } = useOrg();
   const {
     client,
     setClient,
-    brandKits,
-    setBrandKits,
     campaigns,
     setCampaigns,
     isLoading,
@@ -27,10 +25,9 @@ export function useClient(clientId: string) {
       if (!clientId || !currentOrg) return;
 
       try {
-        // Fetch client, brand kits, and campaigns in parallel
-        const [clientRes, brandKitsRes, campaignsRes] = await Promise.all([
+        // Fetch client and campaigns in parallel (brand kits are now campaign-scoped)
+        const [clientRes, campaignsRes] = await Promise.all([
           fetch(`/api/clients/${clientId}`),
-          fetch(`/api/brand-kits?org_id=${currentOrg.id}&client_id=${clientId}`),
           fetch(`/api/campaigns?org_id=${currentOrg.id}&client_id=${clientId}`),
         ]);
 
@@ -39,11 +36,6 @@ export function useClient(clientId: string) {
         if (clientRes.ok) {
           const clientData: Client = await clientRes.json();
           setClient(clientData);
-        }
-
-        if (brandKitsRes.ok) {
-          const bkData: BrandKit[] = await brandKitsRes.json();
-          setBrandKits(bkData);
         }
 
         if (campaignsRes.ok) {
@@ -65,7 +57,6 @@ export function useClient(clientId: string) {
 
   return {
     client,
-    brandKits,
     campaigns,
     isLoading,
   };

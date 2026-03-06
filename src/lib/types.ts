@@ -208,7 +208,6 @@ export interface Campaign {
   id: string;
   org_id: string;
   client_id: string | null;
-  brand_kit_id: string | null;
   name: string;
   status: CampaignStatus;
   phase: number;
@@ -228,6 +227,7 @@ export interface BrandKit {
   id: string;
   org_id: string;
   client_id: string | null;
+  campaign_id: string | null;
   name: string;
   colors: Record<string, string>;
   fonts: Record<string, string>;
@@ -380,14 +380,23 @@ export interface Creative {
   id: string;
   campaign_id: string;
   concept_id: string | null;
+  brand_kit_id: string | null;
+  framework_id: string | null;
   type: "copy" | "image" | "video";
-  platform: "meta_feed" | "meta_stories" | "x" | "linkedin" | "multi" | null;
+  platform: "meta_feed" | "meta_stories" | "x" | "linkedin" | "tiktok" | "youtube" | "multi" | null;
   content: Record<string, unknown>;
   asset_url: string | null;
   canva_design_id: string | null;
   canva_edit_url: string | null;
   status: "draft" | "reviewing" | "approved" | "deployed";
   created_at: string;
+}
+
+export interface CreativeGenerationRequest {
+  campaign_id: string;
+  brand_kit_id: string;
+  framework_id: string;
+  channels: string[];
 }
 
 export type ApprovalType =

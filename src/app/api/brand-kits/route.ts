@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   const admin = createServiceClient();
   const orgId = req.nextUrl.searchParams.get("org_id");
   const clientId = req.nextUrl.searchParams.get("client_id");
+  const campaignId = req.nextUrl.searchParams.get("campaign_id");
 
   if (!orgId) {
     return NextResponse.json(
@@ -27,6 +28,10 @@ export async function GET(req: NextRequest) {
     .select("*")
     .eq("org_id", orgId)
     .order("created_at", { ascending: false });
+
+  if (campaignId) {
+    query = query.eq("campaign_id", campaignId);
+  }
 
   if (clientId) {
     query = query.eq("client_id", clientId);
@@ -53,7 +58,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceClient();
   const body = await req.json();
-  const { org_id, client_id, name, colors, fonts, voice_guide, logo_urls } = body;
+  const { org_id, client_id, campaign_id, name, colors, fonts, voice_guide, logo_urls } = body;
 
   if (!org_id) {
     return NextResponse.json(
@@ -67,6 +72,7 @@ export async function POST(req: NextRequest) {
     .insert({
       org_id,
       client_id: client_id || null,
+      campaign_id: campaign_id || null,
       name: name || "Default",
       colors: colors || {},
       fonts: fonts || {},

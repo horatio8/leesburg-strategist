@@ -52,6 +52,7 @@ export async function PATCH(
     "voice_guide",
     "logo_urls",
     "canva_brand_kit_id",
+    "campaign_id",
     "status",
     "source",
   ];

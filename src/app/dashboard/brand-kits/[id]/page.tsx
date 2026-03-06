@@ -106,7 +106,7 @@ export default function BrandKitDetailPage() {
       ]);
 
       if (!kitRes.ok) {
-        router.push("/dashboard/brand-kits");
+        router.push("/dashboard/brand-kits"); // fallback — campaign-aware redirect handled by back link
         return;
       }
 
@@ -190,7 +190,13 @@ export default function BrandKitDetailPage() {
     setDeleting(true);
     try {
       const res = await fetch(`/api/brand-kits/${kitId}`, { method: "DELETE" });
-      if (res.ok) router.push("/dashboard/brand-kits");
+      if (res.ok) {
+        router.push(
+          kit?.campaign_id
+            ? `/dashboard/campaigns/${kit.campaign_id}/brand-kits`
+            : "/dashboard/brand-kits"
+        );
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -298,11 +304,15 @@ export default function BrandKitDetailPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
       <Link
-        href="/dashboard/brand-kits"
+        href={
+          kit.campaign_id
+            ? `/dashboard/campaigns/${kit.campaign_id}/brand-kits`
+            : "/dashboard/brand-kits"
+        }
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Brand Kits
+        {kit.campaign_id ? "Back to Campaign Brand Kits" : "Back to Brand Kits"}
       </Link>
 
       {/* ═══════════════════════════════════════════ */}

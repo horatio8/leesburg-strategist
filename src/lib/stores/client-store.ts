@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Client, BrandKit, Campaign } from "../types";
+import type { Client, Campaign } from "../types";
 
 interface ClientState {
   client: Client | null;
@@ -7,9 +7,6 @@ interface ClientState {
 
   clients: Client[];
   setClients: (c: Client[]) => void;
-
-  brandKits: BrandKit[];
-  setBrandKits: (b: BrandKit[]) => void;
 
   campaigns: Campaign[];
   setCampaigns: (c: Campaign[]) => void;
@@ -27,9 +24,6 @@ export const useClientStore = create<ClientState>((set) => ({
   clients: [],
   setClients: (clients) => set({ clients }),
 
-  brandKits: [],
-  setBrandKits: (brandKits) => set({ brandKits }),
-
   campaigns: [],
   setCampaigns: (campaigns) => set({ campaigns }),
 
@@ -39,7 +33,6 @@ export const useClientStore = create<ClientState>((set) => ({
   resetClient: () =>
     set({
       client: null,
-      brandKits: [],
       campaigns: [],
       isLoading: true,
     }),

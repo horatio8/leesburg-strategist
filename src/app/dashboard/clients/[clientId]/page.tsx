@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { Plus, Megaphone, Palette, Globe, FileText, Clock } from "lucide-react";
+import { Plus, Megaphone, Globe, FileText, Clock } from "lucide-react";
 import { useClient } from "@/lib/hooks/use-client";
 import CampaignCard from "@/components/campaigns/CampaignCard";
 
@@ -9,7 +9,7 @@ export default function ClientOverviewPage() {
   const params = useParams();
   const router = useRouter();
   const clientId = params.clientId as string;
-  const { client, brandKits, campaigns } = useClient(clientId);
+  const { client, campaigns } = useClient(clientId);
 
   if (!client) return null;
 
@@ -20,16 +20,7 @@ export default function ClientOverviewPage() {
   return (
     <div>
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-card rounded-xl border border-border p-4">
-          <div className="flex items-center gap-2 text-muted-foreground mb-1">
-            <Palette className="w-4 h-4" />
-            <span className="text-xs">Brand Kits</span>
-          </div>
-          <p className="text-2xl font-bold text-foreground">
-            {brandKits.length}
-          </p>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-card rounded-xl border border-border p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Megaphone className="w-4 h-4" />
@@ -69,15 +60,6 @@ export default function ClientOverviewPage() {
         >
           <Plus className="w-4 h-4" />
           New Campaign
-        </button>
-        <button
-          onClick={() =>
-            router.push(`/dashboard/clients/${clientId}/brand-kits`)
-          }
-          className="flex items-center gap-2 px-4 py-2.5 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
-        >
-          <Palette className="w-4 h-4" />
-          Brand Kits
         </button>
       </div>
 

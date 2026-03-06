@@ -1,18 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Plus, Palette, Loader2, ChevronRight, Globe, Sparkles } from "lucide-react";
+import { Plus, Palette, Loader2, ChevronRight, Globe, Sparkles, Info } from "lucide-react";
 import { useClient } from "@/lib/hooks/use-client";
 import { useOrg } from "@/lib/hooks/use-org";
+import type { BrandKit } from "@/lib/types";
 
 export default function ClientBrandKitsPage() {
   const params = useParams();
   const router = useRouter();
   const clientId = params.clientId as string;
   const { currentOrg } = useOrg();
-  const { client, brandKits, isLoading } = useClient(clientId);
+  const { client } = useClient(clientId);
+  const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    async function loadBrandKits() {
+      if (!currentOrg) return;
+      try {
+        const res = await fetch(
+          `/api/brand-kits?org_id=${currentOrg.id}&client_id=${clientId}`
+        );
+        if (res.ok) {
+          setBrandKits(await res.json());
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadBrandKits();
+  }, [clientId, currentOrg]);
 
   const handleCreate = async () => {
     if (!currentOrg || !client) return;
@@ -72,6 +94,15 @@ export default function ClientBrandKitsPage() {
         </button>
       </div>
 
+      {/* Info note about campaign-scoped brand kits */}
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-6 flex items-start gap-2">
+        <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+        <p className="text-xs text-muted-foreground">
+          Brand kits are now managed per-campaign. Create brand kits from a
+          campaign&apos;s Brand Kits tab for best results.
+        </p>
+      </div>
+
       {brandKits.length === 0 ? (
         <div className="bg-card rounded-xl border border-border p-12 text-center">
           <Palette className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
@@ -96,7 +127,7 @@ export default function ClientBrandKitsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {brandKits.map((kit) => (
+          {brandKits.map((kit: BrandKit) => (
             <button
               key={kit.id}
               onClick={() => router.push(`/dashboard/brand-kits/${kit.id}`)}
@@ -132,11 +163,11 @@ export default function ClientBrandKitsPage() {
                 </div>
               </div>
 
-              {Object.keys(kit.colors).length > 0 && (
+              {Object.keys(kit.colors || {}).length > 0 && (
                 <div className="flex gap-1 mb-3">
-                  {Object.values(kit.colors)
+                  {Object.values(kit.colors || {})
                     .slice(0, 6)
-                    .map((color, i) => (
+                    .map((color: string, i: number) => (
                       <div
                         key={i}
                         className="w-6 h-6 rounded-full border border-border"

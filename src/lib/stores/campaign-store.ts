@@ -4,6 +4,8 @@ import type {
   CampaignResearch,
   CampaignStrategy,
   CreativeConcept,
+  BrandKit,
+  MessagingFramework,
   Job,
   Approval,
 } from "../types";
@@ -20,6 +22,12 @@ interface CampaignState {
 
   concepts: CreativeConcept[];
   setConcepts: (c: CreativeConcept[]) => void;
+
+  brandKits: BrandKit[];
+  setBrandKits: (b: BrandKit[]) => void;
+
+  frameworks: MessagingFramework[];
+  setFrameworks: (f: MessagingFramework[]) => void;
 
   activeJobs: Job[];
   setActiveJobs: (j: Job[]) => void;
@@ -44,6 +52,12 @@ export const useCampaignStore = create<CampaignState>((set) => ({
   concepts: [],
   setConcepts: (concepts) => set({ concepts }),
 
+  brandKits: [],
+  setBrandKits: (brandKits) => set({ brandKits }),
+
+  frameworks: [],
+  setFrameworks: (frameworks) => set({ frameworks }),
+
   activeJobs: [],
   setActiveJobs: (activeJobs) => set({ activeJobs }),
   updateJob: (job) =>
@@ -60,6 +74,8 @@ export const useCampaignStore = create<CampaignState>((set) => ({
       research: [],
       strategy: null,
       concepts: [],
+      brandKits: [],
+      frameworks: [],
       activeJobs: [],
       pendingApprovals: [],
     }),

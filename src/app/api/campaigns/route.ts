@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceClient();
   const body = await req.json();
-  const { org_id, client_id, name, brief, priority, platforms, brand_kit_id } = body;
+  const { org_id, client_id, name, brief, priority, platforms } = body;
 
   if (!org_id || !name) {
     return NextResponse.json(
@@ -77,7 +77,6 @@ export async function POST(req: NextRequest) {
       brief: brief || {},
       priority: priority || "normal",
       platforms: platforms || [],
-      brand_kit_id: brand_kit_id || null,
       created_by: user.id,
       status: "draft",
       phase: 0,

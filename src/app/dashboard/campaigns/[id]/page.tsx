@@ -67,6 +67,7 @@ function CreateButton({
       href={href}
       className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-sm font-medium text-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors"
     >
+      <Plus className="w-3.5 h-3.5 text-muted-foreground" />
       <Icon className="w-4 h-4 text-primary" />
       {label}
     </Link>

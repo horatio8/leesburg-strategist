@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "", label: "Overview", icon: LayoutDashboard },
+  { href: "/overview", label: "Overview", icon: LayoutDashboard },
   { href: "/brand-kits", label: "Brand Kits", icon: Palette },
   { href: "/frameworks", label: "Frameworks", icon: FileText },
   { href: "/generate", label: "Generate", icon: Wand2 },
@@ -38,10 +38,7 @@ export default function CampaignDetailNav({
     <div className="flex items-center gap-1 border-b border-border mb-6 overflow-x-auto">
       {NAV_ITEMS.map((item) => {
         const href = `${basePath}${item.href}`;
-        const isActive =
-          item.href === ""
-            ? pathname === basePath
-            : pathname.startsWith(href);
+        const isActive = pathname.startsWith(href);
 
         return (
           <Link

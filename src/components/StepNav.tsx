@@ -13,7 +13,7 @@ const steps = [
 ];
 
 export default function StepNav() {
-  const { currentStep, setCurrentStep, researchSections, grid, frameworkId, saveStatus } =
+  const { currentStep, setCurrentStep, researchSections, grid, frameworkId, campaignId, saveStatus } =
     useAppStore();
 
   const canNavigateTo = (step: number) => {
@@ -58,7 +58,9 @@ export default function StepNav() {
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
-              {steps.map((step, i) => {
+              {steps
+                .filter((step) => !(campaignId && step.num === 1))
+                .map((step, i) => {
                 const Icon = step.icon;
                 const isActive = currentStep === step.num;
                 const isAccessible = canNavigateTo(step.num);

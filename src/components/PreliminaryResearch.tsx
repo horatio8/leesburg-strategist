@@ -52,6 +52,7 @@ export default function PreliminaryResearch() {
     updateOppositionResearch,
     isResearchingOpposition,
     setIsResearchingOpposition,
+    campaignId,
   } = useAppStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -402,13 +403,17 @@ export default function PreliminaryResearch() {
 
       {/* Navigation */}
       <div className="flex items-center justify-between">
-        <button
-          onClick={() => setCurrentStep(1)}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Campaign
-        </button>
+        {!campaignId ? (
+          <button
+            onClick={() => setCurrentStep(1)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Campaign
+          </button>
+        ) : (
+          <div />
+        )}
         <button
           onClick={() => setCurrentStep(3)}
           className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"

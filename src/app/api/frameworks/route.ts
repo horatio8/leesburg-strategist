@@ -77,20 +77,66 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceClient();
 
+  // Pre-fill from campaign brief when creating from a campaign
+  let prefillName = "";
+  let prefillGoal = "";
+  let prefillWebsite = "";
+  let prefillTitle = "Untitled Framework";
+  const prefillSocial = { twitter: "", facebook: "", instagram: "", linkedin: "", tiktok: "", youtube: "" };
+  const prefillOppositions: { id: string; name: string; website: string }[] = [];
+
+  if (campaignId) {
+    const { data: campaign } = await admin
+      .from("campaigns")
+      .select("name, brief")
+      .eq("id", campaignId)
+      .single();
+
+    if (campaign) {
+      const brief = campaign.brief || {};
+      prefillTitle = campaign.name || "Untitled Framework";
+      prefillName = brief.brand_name || campaign.name || "";
+      prefillWebsite = brief.website || "";
+
+      // Combine goals and target audience into the strategic goal
+      const parts = [brief.goals, brief.target_audience ? `Target audience: ${brief.target_audience}` : ""].filter(Boolean);
+      prefillGoal = parts.join("\n\n");
+
+      // Map competitors to oppositions
+      if (Array.isArray(brief.competitors)) {
+        brief.competitors.forEach((name: string, i: number) => {
+          if (name.trim()) {
+            prefillOppositions.push({ id: `opp-campaign-${i}`, name: name.trim(), website: "" });
+          }
+        });
+      }
+
+      // Map social URLs if available
+      if (brief.social_urls) {
+        for (const [key, value] of Object.entries(brief.social_urls)) {
+          if (key in prefillSocial && typeof value === "string") {
+            (prefillSocial as Record<string, string>)[key] = value;
+          }
+        }
+      }
+    }
+  }
+
   const { data, error } = await admin
     .from("messaging_frameworks")
     .insert({
       user_id: user.id,
       campaign_id: campaignId,
       org_id: orgId,
-      title: "Untitled Framework",
+      title: prefillTitle,
       current_step: 1,
       entity_type: "candidate",
-      name: "",
+      name: prefillName,
       location: "",
-      goal: "",
-      website: "",
-      social_media: { twitter: "", facebook: "", instagram: "", linkedin: "", tiktok: "", youtube: "" },
+      goal: prefillGoal,
+      website: prefillWebsite,
+      social_media: prefillSocial,
+      oppositions: prefillOppositions,
       research_sections: [],
       map_data: null,
       wells: { "our-story": [], "the-attack": [], "their-defense": [], "the-counter": [] },

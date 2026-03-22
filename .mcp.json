@@ -4,7 +4,7 @@
       "command": "uvx",
       "args": ["--from", "zernio-sdk[mcp]", "zernio-mcp"],
       "env": {
-        "ZERNIO_API_KEY": "${ZERNIO_API_KEY}"
+        "ZERNIO_API_KEY": "sk_2520054676bfa84ec65357ad35e88edc68e759ecc482794a134e9ea9f036f2f1"
       }
     }
   }

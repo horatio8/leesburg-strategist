@@ -8,9 +8,12 @@
   --primary: #272560;
   --primary-foreground: #ffffff;
   --accent: #F5C342;
+  --accent-foreground: #272560;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --border: #e2e8f0;
+  --navy-light: #3a3580;
+  --navy-dark: #1a1845;
 }
 
 @theme inline {
@@ -21,9 +24,12 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-navy-light: var(--navy-light);
+  --color-navy-dark: var(--navy-dark);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -69,6 +75,158 @@ body {
 .drop-active {
   background: rgba(59, 130, 246, 0.1);
   border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Marketing page animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes count-up-glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(245, 195, 66, 0.3); }
+  50% { text-shadow: 0 0 40px rgba(245, 195, 66, 0.6); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: count-up-glow 3s ease-in-out infinite;
+}
+
+.animate-slide-left {
+  animation: slide-in-left 0.8s ease-out forwards;
+}
+
+.animate-slide-right {
+  animation: slide-in-right 0.8s ease-out forwards;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-600 { animation-delay: 0.6s; }
+
+/* Hero gradient */
+.hero-gradient {
+  background: linear-gradient(135deg, #272560 0%, #3a3580 40%, #272560 70%, #1a1845 100%);
+}
+
+/* Gold gradient button */
+.btn-gold {
+  background: linear-gradient(135deg, #F5C342 0%, #e6b030 100%);
+  color: #272560;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(245, 195, 66, 0.4);
+}
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 195, 66, 0.6);
+}
+
+/* Outline button for dark bg */
+.btn-outline-light {
+  border: 2px solid rgba(255,255,255,0.3);
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-outline-light:hover {
+  border-color: #F5C342;
+  color: #F5C342;
+  background: rgba(245, 195, 66, 0.1);
+}
+
+/* Feature card hover */
+.feature-card {
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+}
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(39, 37, 96, 0.12);
+  border-color: #F5C342;
+}
+
+/* Stat card */
+.stat-card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Pricing card */
+.pricing-card {
+  transition: all 0.3s ease;
+  border: 2px solid var(--border);
+}
+.pricing-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(39, 37, 96, 0.15);
+}
+.pricing-card.featured {
+  border-color: var(--accent);
+  box-shadow: 0 20px 60px rgba(245, 195, 66, 0.2);
+  position: relative;
+}
+
+/* Testimonial card */
+.testimonial-card {
+  transition: all 0.3s ease;
+}
+.testimonial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(39, 37, 96, 0.1);
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }
 
 /* Print styles */

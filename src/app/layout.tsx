@@ -13,11 +13,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Campaign Institute",
+  title: {
+    default: "Campaign Institute — Campaign OS | AI-Powered Campaign Platform",
+    template: "%s | Campaign Institute",
+  },
   description:
-    "AI-powered political strategy tool for building Leesburg Grids",
+    "Campaign OS is the most advanced AI-powered campaign platform. Unify CRM, texting, phone banking, voter analytics, and fundraising into one platform. The power of 3 full-time staffers.",
+  keywords: [
+    "campaign software",
+    "political campaign tools",
+    "AI campaign platform",
+    "voter CRM",
+    "campaign texting",
+    "phone banking software",
+    "voter analytics",
+    "campaign fundraising",
+    "Campaign OS",
+    "Campaign Institute",
+  ],
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Campaign Institute — Campaign OS",
+    description:
+      "The most advanced AI-powered campaign platform. CRM, texting, phone banking, analytics, and fundraising — all in one place.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Campaign Institute — Campaign OS",
+    description:
+      "AI-powered campaign platform with the power of 3 full-time staffers.",
   },
 };
 
